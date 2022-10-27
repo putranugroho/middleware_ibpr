@@ -1,7 +1,8 @@
 const db = require("../../connection");
 
 const send_log = async (data, response) => {
-        let text = `        text1 = ${response.text1}
+        let text = `
+        text1 = ${response.text1}
         text2 = ${response.text2}
         text3 = ${response.text3}
         text4 = ${response.text4}
@@ -47,7 +48,7 @@ const send_log = async (data, response) => {
     // }
 }
 
-const error_response = async (data, response, jumlahtx, text1, text2, text3, text4, text5, text6, rcode, message) => {
+const error_response = async (data, response, jumlahtx, text1, text2, text3, text4, text5, text6, text7, text8, text9, text10, text11, text12, text13, text14, rcode, message) => {
     response["jumlahtx"] = jumlahtx
     response["kodetrx"] = data.KODETRX
     response["nokartu"] = data.NOKARTU
@@ -58,14 +59,14 @@ const error_response = async (data, response, jumlahtx, text1, text2, text3, tex
     response["text4"] = text4
     response["text5"] = text5
     response["text6"] = text6
-    response["text7"] = null
-    response["text8"] = null
-    response["text9"] = null
-    response["text10"] = null
-    response["text11"] = null
-    response["text12"] = null
-    response["text13"] = null
-    response["text14"] = null
+    response["text7"] = text7
+    response["text8"] = text8
+    response["text9"] = text9
+    response["text10"] = text10
+    response["text11"] = text11
+    response["text12"] = text12
+    response["text13"] = text13
+    response["text14"] = text14
     response["text15"] = null
     response["text16"] = null
     response["text17"] = null
