@@ -1,7 +1,7 @@
 const axios = require("axios").default;
 
 module.exports = axios.create({
-  baseURL: "https://api-stg.oyindonesia.com",
+  baseURL: "https://integration-dev.oyindonesia.com",
 
   headers: {
     "Content-Type": "application/json",

@@ -9,8 +9,9 @@ var https = require('https');
 moment.locale("id");
 const hmacSHA256 = require('crypto-js/hmac-sha256');
 const Base64 = require("crypto-js/enc-base64");
+const { log } = require("console");
 
-const api_crm = "https://integration-stg.oyindonesia.com"
+const api_crm = "https://integration-dev.oyindonesia.com"
 
 const agent = new https.Agent({  
     rejectUnauthorized: false
@@ -72,7 +73,7 @@ const tarik_tunai = async (req, res) => {
     let response = {}
     console.log("REQ BODY");
     console.log(data);
-    let no_hp = data.NOKARTU.substring(4,16)
+    let no_hp = data.NOKARTU.substring(4,data.NOKARTU.length)
     let bpr_id = data.NOKARTU.substring(0,4)
     let [results, metadata] = await db.sequelize.query(
         `INSERT INTO log_transaksi(nokartu, waktu, kodetrx, jumlahtx, otp, pin, tid, terminalid, jenistx, message_type, status) VALUES (?,?,?,?,?,?,?,?,?,'REQUEST','0')`,
@@ -126,7 +127,7 @@ const tarik_tunai = async (req, res) => {
                 }
             );
             if (!kartu.length) {
-                response = await error_response(data,response,"","TRANSAKSI DI TOLAK","KODE BPR ATAU NO HANDPHONE SALAH",null,null,null,null,null,null,null,null,null,null,null,null,"14","Kartu Tidak Ditemukan")
+                response = await error_response(data,response,"","TRANSAKSI DI TOLAK","KODE BPR ATAU NO HANDPHONE SALAH",null,null,null,null,null,null,null,null,null,null,null,null,null,"14","Kartu Tidak Ditemukan")
                 await send_log(data,response)
                 console.log(response); 
                 res.status(200).send(
@@ -134,274 +135,283 @@ const tarik_tunai = async (req, res) => {
                 );
             } else {
                 if (data.KODETRX.substring(0,2) == "01") {
-                    // let check_pin = await db.sequelize.query(
-                    //     `SELECT * FROM dummy_rek_tabungan WHERE no_hp = ? AND bpr_id = ? AND crypto = ? AND status_rek = '1'`,
-                    //     {
-                    //     replacements: [
-                    //         no_hp,
-                    //         bpr_id,
-                    //         data.PIN
-                    //     ],
-                    //     type: db.sequelize.QueryTypes.SELECT,
-                    //     }
-                    // );
-                    // if (!check_pin.length) {
-                    //     let pin_salah = parseInt(kartu[0].pin_salah)+1
-                    //     if (pin_salah == 3) {
-                    //         let [results, metadata] = await db.sequelize.query(
-                    //             `UPDATE dummy_rek_tabungan SET status_rek = '4' WHERE no_hp = ? AND bpr_id = ? AND status_rek != '4'`,
-                    //             {
-                    //                 replacements: [
-                    //                     no_hp,
-                    //                     bpr_id
-                    //                 ],
-                    //             }
-                    //         );
-                    //         response = await error_response(data,response,"","TRANSAKSI DI TOLAK","PIN BLOCKED",null,null,null,null,"75","Pin Blocked")
-                    //         await send_log(data,response)
-                    //         console.log(response); 
-                    //         res.status(200).send(
-                    //            response,
-                    //         );
-                    //     } else if (kartu[0].pin_salah == "3" || kartu[0].status_rek == "4") {
-                    //         response = await error_response(data,response,"","TRANSAKSI DI TOLAK","PIN BLOCKED",null,null,null,null,"75","Pin Blocked")
-                    //         await send_log(data,response)
-                    //         console.log(response); 
-                    //         res.status(200).send(
-                    //            response,
-                    //         );
-                    //     } else {
-                    //         let [results, metadata] = await db.sequelize.query(
-                    //             `UPDATE dummy_rek_tabungan SET pin_salah = '${pin_salah}' WHERE no_hp = ? AND bpr_id = ? AND status_rek != '4'`,
-                    //             {
-                    //                 replacements: [
-                    //                     no_hp,
-                    //                     bpr_id
-                    //                 ],
-                    //             }
-                    //         );
-                    //         response = await error_response(data,response,"","TRANSAKSI DI TOLAK","PIN SALAH",null,null,null,null,"55","Pin Salah")
-                    //         await send_log(data,response)
-                    //         console.log(response); 
-                    //         res.status(200).send(
-                    //         response,
-                    //         );
-                    //     }
-                    // } else {
-                        if (data.JENISTX == "REV") {
-                            let cek_hold_dana = await db.sequelize.query(
-                                `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND status != '2'`,
-                                {
+                    if (data.JENISTX == "REV") {
+                        let cek_hold_dana = await db.sequelize.query(
+                            `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND status != '2' order by tgl_trans DESC`,
+                            {
+                            replacements: [
+                                kartu[0].no_rek,
+                                "1000",
+                                data.OTP,
+                                amount
+                            ],
+                            type: db.sequelize.QueryTypes.SELECT,
+                            }
+                        );
+                        if (!cek_hold_dana.length) {
+                            response['rcode'] = "99"
+                            response['message'] = "Hold Dana Tidak Ditemukan"
+            
+                            res.status(200).send(
+                                response,
+                            );
+                        } else {
+                            let tgl_trans = moment(cek_hold_dana[0].tgl_trans).format('YYYY-MM-DD HH:mm:ss')
+                            let [results, metadata] = await db.sequelize.query(
+                            `UPDATE dummy_hold_dana SET status = '0' WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND tgl_trans = ? AND status = '1'`,
+                            {
                                 replacements: [
                                     kartu[0].no_rek,
                                     "1000",
                                     data.OTP,
-                                    amount
+                                    amount,
+                                    tgl_trans
                                 ],
-                                type: db.sequelize.QueryTypes.SELECT,
                                 }
                             );
-                            if (!cek_hold_dana.length) {
-                               response['rcode'] = "99"
-                               response['message'] = "Hold Dana Tidak Ditemukan"
+                            if (!metadata) {
+                                response['rcode'] = "99"
+                                response['message'] = "Gagal Merubah Status Hold Dana"
                 
                                 res.status(200).send(
-                                   response,
+                                    response,
                                 );
                             } else {
-                                let tgl_trans = moment(cek_hold_dana[0].tgl_trans).format('YYYY-MM-DD HH:mm:ss')
                                 let [results, metadata] = await db.sequelize.query(
-                                `UPDATE dummy_hold_dana SET status = '0' WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND tgl_trans = ? AND status = '1'`,
+                                    `UPDATE dummy_transaksi SET status_rek = '0' WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND tgl_trans = ? AND status_rek = '1'`,
                                 {
                                     replacements: [
                                         kartu[0].no_rek,
-                                        "1000",
-                                        data.OTP,
+                                        kartu[0].nama_rek,
                                         amount,
                                         tgl_trans
                                     ],
-                                    }
+                                }
                                 );
                                 if (!metadata) {
-                                   response['rcode'] = "99"
-                                   response['message'] = "Gagal Merubah Status Hold Dana"
-                    
-                                    res.status(200).send(
-                                       response,
-                                    );
+                                response['rcode'] = "99"
+                                response['message'] = "Gagal Merubah Status Transaksi"
+                
+                                res.status(200).send(
+                                    response,
+                                );
                                 } else {
                                     let [results, metadata] = await db.sequelize.query(
-                                        `UPDATE dummy_transaksi SET status_rek = '0' WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND tgljam_trans = ? AND status_rek = '1'`,
-                                    {
+                                        `UPDATE token SET status = '0' WHERE token = ? AND no_rek = ? AND status = '1'`,
+                                        {
                                         replacements: [
-                                            kartu[0].no_rek,
-                                            kartu[0].nama_rek,
-                                            amount,
-                                            tgl_trans
+                                            data.OTP,
+                                            kartu[0].no_rek
                                         ],
-                                    }
+                                        }
                                     );
                                     if (!metadata) {
-                                   response['rcode'] = "99"
-                                   response['message'] = "Gagal Merubah Status Transaksi"
-                    
-                                    res.status(200).send(
-                                       response,
-                                    );
-                                    } else {
-                                        let [results, metadata] = await db.sequelize.query(
-                                            `UPDATE token SET status = '0' WHERE token = ? AND no_rek = ? AND status = '1'`,
-                                            {
-                                            replacements: [
-                                                data.OTP,
-                                                kartu[0].no_rek
-                                            ],
-                                            }
+                                        response['rcode'] = "99"
+                                        response['message'] = "Gagal Merubah Status Token"
+                        
+                                        res.status(200).send(
+                                            response,
                                         );
-                                        if (!metadata) {
-                                           response['rcode'] = "99"
-                                           response['message'] = "Gagal Merubah Status Token"
-                            
-                                            res.status(200).send(
-                                               response,
-                                            );
-                                        } else {
-                                            let nominal = `00000000000${cek_hold_dana[0].amount}00`
-                                            let nilai = formatRibuan(cek_hold_dana[0].amount)
-                                            response["jumlahtx"] = nominal.substring(nominal.length-12, nominal.length)
-                                            response["kodetrx"] = data.KODETRX
-                                            response["nokartu"] = data.NOKARTU
-                                            response["tid"] = data.TID
-                                            response["text1"] = null
-                                            response["text2"] = `NAMA  = ${kartu[0].nama_rek}`
-                                            response["text3"] = `NILAI = Rp. ${nilai}`
-                                            response["text4"] = null
-                                            response["text5"] = null
-                                            response["text6"] = null
-                                            response["text7"] = null
-                                            response["text8"] = null
-                                            response["text9"] = null
-                                            response["text10"] = null
-                                            response["text11"] = null
-                                            response["text12"] = null
-                                            response["text13"] = null
-                                            response["text14"] = null
-                                            response["text15"] = null
-                                            response["text16"] = null
-                                            response["text17"] = null
-                                            response["text18"] = null
-                                            response["text19"] = null
-                                            response["text20"] = null
-                                            response['rcode'] = "00"
-                                            response['message'] = "REVERSAL SUKSES"
-                                            console.log(response);
-                                            res.status(200).send(
-                                                response
-                                            );
-                                        }
+                                    } else {
+                                        let nominal = `00000000000${cek_hold_dana[0].amount}00`
+                                        let nilai = formatRibuan(cek_hold_dana[0].amount)
+                                        response["jumlahtx"] = nominal.substring(nominal.length-12, nominal.length)
+                                        response["kodetrx"] = data.KODETRX
+                                        response["nokartu"] = data.NOKARTU
+                                        response["tid"] = data.TID
+                                        response["text1"] = null
+                                        response["text2"] = `NAMA  = ${kartu[0].nama_rek}`
+                                        response["text3"] = `NILAI = Rp. ${nilai}`
+                                        response["text4"] = null
+                                        response["text5"] = null
+                                        response["text6"] = null
+                                        response["text7"] = null
+                                        response["text8"] = null
+                                        response["text9"] = null
+                                        response["text10"] = null
+                                        response["text11"] = null
+                                        response["text12"] = null
+                                        response["text13"] = null
+                                        response["text14"] = null
+                                        response["text15"] = null
+                                        response["text16"] = null
+                                        response["text17"] = null
+                                        response["text18"] = null
+                                        response["text19"] = null
+                                        response["text20"] = null
+                                        response['rcode'] = "00"
+                                        response['message'] = "REVERSAL SUKSES"
+                                        console.log(response);
+                                        res.status(200).send(
+                                            response
+                                        );
                                     }
                                 }
                             }
+                        }
+                    } else {
+                        let cek_token = await db.sequelize.query(
+                            `SELECT * FROM token WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND status = '1' order by tgl_trans DESC`,
+                            {
+                            replacements: [
+                                kartu[0].no_rek,
+                                no_hp,
+                                bpr_id
+                            ],
+                            type: db.sequelize.QueryTypes.SELECT,
+                            }
+                        );
+                        if (!cek_token.length) {
+                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK","TOKEN AKSES TIDAK DITEMUKAN",null,null,null,null,null,null,null,null,null,null,null,null,null,"81","Token Tidak Ditemukan")
+                            await send_log(data,response)
+                            console.log(response); 
+                            res.status(200).send(
+                                response,
+                            );
                         } else {
+                            let tgl_inquiry = cek_token[0].tgl_trans
                             let cek_hold_dana = await db.sequelize.query(
-                                `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND status = '0'`,
+                                `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND tgl_inquiry = ? AND status = '0' order by tgl_trans DESC`,
                                 {
                                 replacements: [
                                     kartu[0].no_rek,
+                                    no_hp,
+                                    bpr_id,
                                     "1000",
-                                    data.OTP,
-                                    amount
+                                    amount,
+                                    tgl_inquiry
                                 ],
                                 type: db.sequelize.QueryTypes.SELECT,
                                 }
                             );
                             if (!cek_hold_dana.length) {
-                               response['rcode'] = "99"
-                               response['message'] = "Hold Dana Tidak Ditemukan"
+                                response['rcode'] = "99"
+                                response['message'] = "Hold Dana Tidak Ditemukan"
                 
                                 res.status(200).send(
-                                   response,
+                                    response,
                                 );
                             } else {
-                                let tgl_trans = moment(cek_hold_dana[0].tgl_trans).format('YYYY-MM-DD HH:mm:ss')
                                 let [results, metadata] = await db.sequelize.query(
                                 // `UPDATE dummy_hold_dana SET status = '1' WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND tgl_trans = ? AND status = '0'`,
-                                `UPDATE dummy_hold_dana SET status = '0' WHERE no_rek = ? AND tcode = ? AND token = ? AND amount = ? AND tgl_trans = ? AND status = '0'`,
+                                `UPDATE dummy_hold_dana SET status = '1' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND tgl_inquiry = ? AND status = '0'`,
                                 {
                                     replacements: [
                                         kartu[0].no_rek,
+                                        no_hp,
+                                        bpr_id,
                                         "1000",
-                                        data.OTP,
                                         amount,
-                                        tgl_trans
+                                        tgl_inquiry
                                     ],
                                     }
                                 );
                                 if (!metadata) {
-                                   response['rcode'] = "99"
-                                   response['message'] = "Gagal Merubah Status Hold Dana"
-                    
+                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"81","Token Tidak Ditemukan")
+                                    await send_log(data,response)
+                                    console.log(response); 
                                     res.status(200).send(
-                                       response,
+                                        response,
                                     );
                                 } else {
-                                    let [results, metadata] = await db.sequelize.query(
-                                        `UPDATE dummy_transaksi SET status_rek = '1' WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND tgljam_trans = ? AND status_rek = '0'`,
+                                    let get_atm = await db.sequelize.query(
+                                        `SELECT atm.atm_id, atm.nama_atm, bpr.nama_bpr FROM kd_atm AS atm INNER JOIN kd_bpr AS bpr ON atm.bpr_id = bpr.bpr_id WHERE atm_id LIKE ?`,
                                     {
                                         replacements: [
-                                            kartu[0].no_rek,
-                                            kartu[0].nama_rek,
-                                            amount,
-                                            tgl_trans
+                                            `%${data.TERMINALID}`,
                                         ],
+                                        type: db.sequelize.QueryTypes.SELECT,
                                     }
                                     );
-                                    if (!metadata) {
-                                   response['rcode'] = "99"
-                                   response['message'] = "Gagal Merubah Status Transaksi"
-                    
-                                    res.status(200).send(
-                                       response,
-                                    );
-                                    } else {
-                                        let get_atm = await db.sequelize.query(
-                                            `SELECT atm.atm_id, atm.nama_atm, bpr.nama_bpr FROM kd_atm AS atm INNER JOIN kd_bpr AS bpr ON atm.bpr_id = bpr.bpr_id WHERE atm_id LIKE ?`,
-                                        {
-                                            replacements: [
-                                                `%${data.TERMINALID}`,
-                                            ],
-                                            type: db.sequelize.QueryTypes.SELECT,
-                                        }
+                                    if (!get_atm.length) {
+                                        response['rcode'] = "99"
+                                        response['message'] = "ATM Tidak Ditemukan"
+                        
+                                        res.status(200).send(
+                                            response,
                                         );
-                                        if (!get_atm.length) {
-                                           response['rcode'] = "99"
-                                           response['message'] = "ATM Tidak Ditemukan"
-                            
-                                            res.status(200).send(
-                                               response,
-                                            );
-                                        } else {
-                                            let [results, metadata] = await db.sequelize.query(
-                                                // `UPDATE token SET status = '1' WHERE token = ? AND no_rek = ? AND status = '0'`,
-                                                `UPDATE token SET status = '0' WHERE token = ? AND no_rek = ? AND status = '0'`,
-                                                {
+                                    } else {
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `UPDATE dummy_transaksi SET status_rek = '1', reference_number = ? WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND reff = ? AND tgl_trans = ? AND status_rek = '0'`,
+                                            {
                                                 replacements: [
-                                                    data.OTP,
-                                                    kartu[0].no_rek
+                                                    cek_token[0].reference_number,
+                                                    kartu[0].no_rek,
+                                                    kartu[0].nama_rek,
+                                                    amount,
+                                                    cek_hold_dana[0].reff,
+                                                    cek_hold_dana[0].tgl_trans
                                                 ],
+                                            }
+                                        );
+                                        if (!metadata) {
+                                        response['rcode'] = "99"
+                                        response['message'] = "Gagal Merubah Status Transaksi"
+                        
+                                        res.status(200).send(
+                                            response,
+                                        );
+                                        } else {
+                                            let requestData = {
+                                                "partner_id": "mtd",
+                                                "request_timestamp": tgl_inquiry,
+                                                "token_access": cek_token[0].token_access,
+                                                "reference_number": cek_token[0].reference_number,
+                                                "terminal": {
+                                                    "id": "1234",
+                                                    "name_location": "location"
+                                                },
+                                                "customer_account_number": no_hp,
+                                                "customer_token": data.OTP
+                                            }
+                                            let paramToCombine = [
+                                                "POST", 
+                                                "/internal-middleware/v2/withdrawal/request",
+                                                tgl_inquiry,
+                                                JSON.stringify(requestData)
+                                            ]
+                                            paramToCombine = paramToCombine.join(":").replace(/\s*|\t|\r|\n/gm, "");
+                                            const rawSignature = hmacSHA256(paramToCombine,process.env.SHA_KEY)
+                                            const Signature = Base64.stringify(rawSignature)
+                                            console.log(JSON.stringify(requestData));
+                                    
+                                            let request_withdrawal = await axios({
+                                                method: 'post',
+                                                url: `${api_crm}/internal-middleware/v2/withdrawal/request`,
+                                                httpsAgent: agent,
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "Signature": Signature
+                                                },
+                                                data: requestData
+                                            }).then(res => {
+                                                console.log("response");
+                                                let response = {
+                                                    status : res.data.response_status,
+                                                    error : res.data.error,
+                                                    data : res.data
                                                 }
-                                            );
-                                            if (!metadata) {
-                                               response['rcode'] = "99"
-                                               response['message'] = "Gagal Merubah Status Token"
-                                
-                                                res.status(200).send(
-                                                   response,
-                                                );
-                                            } else {
+                                                return response
+                                            }).catch(error => {
+                                                console.log("error");
+                                                return error
+                                            });
+                                            console.log(request_withdrawal);
+                                            if (request_withdrawal.status == "SUCCESS") {
                                                 let nominal = `00000000000${cek_hold_dana[0].amount}00`
                                                 let nilai = formatRibuan(cek_hold_dana[0].amount)
                                                 nominal = nominal.substring(nominal.length-12, nominal.length)
+                                                let [results, metadata] = await db.sequelize.query(
+                                                    `UPDATE token SET status = '2' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tgl_trans = ? AND status = '1'`,
+                                                    {
+                                                    replacements: [
+                                                        kartu[0].no_rek,
+                                                        no_hp,
+                                                        bpr_id,
+                                                        tgl_inquiry
+                                                    ],
+                                                    }
+                                                );
                                                 // response = await error_response(data,response,nominal,get_atm[0].nama_bpr,get_atm[0].nama_atm,moment().format('DD-MM-YYYY HH:mm:ss'),"PENARIKAN TUNAI",`NOMER RESI :${data.TID}`,`NILAI = Rp. ${nilai}`,"00","Transaksi Berhasil")
                                                 response = await error_response(
                                                     data,
@@ -419,6 +429,7 @@ const tarik_tunai = async (req, res) => {
                                                     `NAMA     = ${kartu[0].nama_rek}`,
                                                     `NOMER HP = #########${no_hp.substring(9,no_hp.length)}`,
                                                     `NILAI    = Rp. ${nilai}`,
+                                                    `TOKEN    = ${data.OTP}`,
                                                     "",
                                                     "TERIMA KASIH",
                                                     "00",
@@ -429,184 +440,351 @@ const tarik_tunai = async (req, res) => {
                                                 res.status(200).send(
                                                     response
                                                 );
+                                            } else {
+                                                response = await error_response(data,response,"","TRANSAKSI DI TOLAK","GAGAL INQUIRY TARIK TUNAI",null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
+                                                await send_log(data,response)
+                                                console.log(response); 
+                                                res.status(200).send(
+                                                    response,
+                                                );
                                             }
                                         }
                                     }
                                 }
                             }
                         }
+                    }
                     // }
                 } else if (data.KODETRX.substring(0,2) == "88") {
-                    let cek_token = await db.sequelize.query(
-                        `SELECT * FROM token WHERE token = ? AND no_rek = ? AND status = '0'`,
-                        {
-                        replacements: [
-                            data.OTP,
-                            kartu[0].no_rek
-                        ],
-                        type: db.sequelize.QueryTypes.SELECT,
+                    let tgl_trans = moment().format('YYMMDDHHmmss')
+                    let requestData = {
+                        "partner_id": "mtd",
+                        "request_timestamp": tgl_trans
+                    }
+                    let paramToCombine = [
+                        "POST", 
+                        "/internal-middleware/v2/generate-token",
+                        tgl_trans,
+                        JSON.stringify(requestData)
+                    ]
+                    paramToCombine = paramToCombine.join(":").replace(/\s*|\t|\r|\n/gm, "");
+                    const rawSignature = hmacSHA256(paramToCombine,process.env.SHA_KEY)
+                    const Signature = Base64.stringify(rawSignature)
+                    console.log(JSON.stringify(requestData));
+            
+                    let token_access = await axios({
+                        method: 'post',
+                        url: `${api_crm}/internal-middleware/v2/generate-token`,
+                        httpsAgent: agent,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Signature": Signature
+                        },
+                        data: requestData
+                    }).then(res => {
+                        let response = {
+                            code : "success",
+                            token : res.data.token_access
                         }
-                    );
-                    if (!cek_token.length) {
-                        response = await error_response(data,response,"","TRANSAKSI DI TOLAK","TOKEN TIDAK DITEMUKAN",null,null,null,null,null,null,null,null,null,null,null,null,"81","Token Tidak Ditemukan")
-                        await send_log(data,response)
-                        console.log(response); 
-                        res.status(200).send(
-                           response,
-                        );
-                    } else {
-                        // let date = moment(cek_token[0].tgl_expired).format('MMDDHHmmss');
-                        // let expired = (parseInt(date.substring(4,6))*3600)+(parseInt(date.substring(6,8))*60)+parseInt(date.substring(8,10))
-                        // let transaction = (parseInt(data.WAKTU.substring(4,6))*3600)+(parseInt(data.WAKTU.substring(6,8))*60)+parseInt(data.WAKTU.substring(8,10))
-                        // console.log(expired);
-                        // console.log(transaction);
-                        // if (expired>transaction) {
-                            let tgl_trans = moment(cek_token[0].tgl_trans).format('YYYY-MM-DD HH:mm:ss')
+                        return response
+                    }).catch(error => {
+                        let err = {
+                            code : error.response.status,
+                            message : error.response.statusText,
+                            token : ""
+                        }
+                        return err
+                    });
+                    console.log(token_access);
+                    if (token_access.code == "success" && token_access.token) {
+                        let reference_number = `${data.TID.substring(data.TID.length-6,data.TID.length)}${bpr_id}${no_hp}`
+                        let requestData = {
+                            "partner_id": "mtd",
+                            "request_timestamp": tgl_trans,
+                            "token_access": token_access.token,
+                            "reference_number": reference_number,
+                            "terminal": {
+                                "id": "1234",
+                                "name_location": "location"
+                            },
+                            "customer_account_number": no_hp,
+                            "customer_token": data.OTP
+                        }
+                        let paramToCombine = [
+                            "POST", 
+                            "/internal-middleware/v2/withdrawal/inquiry",
+                            tgl_trans,
+                            JSON.stringify(requestData)
+                        ]
+                        paramToCombine = paramToCombine.join(":").replace(/\s*|\t|\r|\n/gm, "");
+                        const rawSignature = hmacSHA256(paramToCombine,process.env.SHA_KEY)
+                        const Signature = Base64.stringify(rawSignature)
+                        console.log(JSON.stringify(requestData));
+                
+                        let inquiry_withdrawal = await axios({
+                            method: 'post',
+                            url: `${api_crm}/internal-middleware/v2/withdrawal/inquiry`,
+                            httpsAgent: agent,
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Signature": Signature
+                            },
+                            data: requestData
+                        }).then(res => {
+                            console.log("response");
+                            let response = {
+                                status : res.data.response_status,
+                                error : res.data.error,
+                                data : res.data
+                            }
+                            return response
+                        }).catch(error => {
+                            console.log("error");
+                            return error
+                        });
+                        console.log(inquiry_withdrawal);
+                        if (inquiry_withdrawal.status == "SUCCESS") {
+                            let amount = inquiry_withdrawal.data.data.amount.value
+                            let nominal = `00000000000${amount}00`
+                            let nilai = formatRibuan(amount)
+                            nominal = nominal.substring(nominal.length-12, nominal.length)
+                            let [results, metadata] = await db.sequelize.query(
+                                `INSERT INTO token(no_hp, bpr_id, no_rek, tgl_trans, status, token_access) VALUES (?,?,?,?,'0',?)`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    kartu[0].no_rek,
+                                    tgl_trans,
+                                    token_access.token
+                                ],
+                                }
+                            );
                             let cek_hold_dana = await db.sequelize.query(
-                                `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND tcode = '1000' AND token = ? AND tgl_trans = ? AND status = '0'`,
+                                `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND token = ? AND status = '0'`,
                                 {
                                 replacements: [
                                     kartu[0].no_rek,
-                                    data.OTP,
-                                    tgl_trans
+                                    no_hp,
+                                    bpr_id,
+                                    "1000",
+                                    amount,
+                                    data.OTP
                                 ],
                                 type: db.sequelize.QueryTypes.SELECT,
                                 }
                             );
                             if (!cek_hold_dana.length) {
-                                response = await error_response(data,response,"","TRANSAKSI DI TOLAK","TOKEN TIDAK DITEMUKAN",null,null,null,null,null,null,null,null,null,null,null,null,"81","Hold Dana Tidak Ditemukan")
-                                await send_log(data,response)
-                                console.log(response);
-                                res.status(200).send(
-                                   response,
+                                let select_hold_dana = await db.sequelize.query(
+                                    `SELECT * FROM dummy_hold_dana WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND status = '0' AND token = 'NULL' AND reference_number = 'NULL' order by tgl_trans DESC`,
+                                    {
+                                    replacements: [
+                                        kartu[0].no_rek,
+                                        no_hp,
+                                        bpr_id,
+                                        "1000",
+                                        amount
+                                    ],
+                                    type: db.sequelize.QueryTypes.SELECT,
+                                    }
                                 );
-                            } else {
-                                let requestData = {
-                                    "partner_id": "mtd",
-                                    "request_timestamp": data.WAKTU,
-                                    "token_access": cek_token[0].token_access,
-                                    "reference_number": data.TID,
-                                    "terminal": {
-                                        "id": "1234",
-                                        "name_location": "location"
-                                    },
-                                    "customer_account_number": no_hp,
-                                    "customer_token": data.OTP
-                                }
-                                let paramToCombine = [
-                                    "POST", 
-                                    "/internal-middleware/v2/withdrawal/inquiry",
-                                    data.WAKTU,
-                                    JSON.stringify(requestData)
-                                ]
-                                paramToCombine = paramToCombine.join(":").replace(/\s*|\t|\r|\n/gm, "");
-                                const rawSignature = hmacSHA256(paramToCombine,process.env.SHA_KEY)
-                                const Signature = Base64.stringify(rawSignature)
-                        
-                                let inquiry_withdrawal = await axios({
-                                    method: 'post',
-                                    url: `${api_crm}/internal-middleware/v2/withdrawal/inquiry`,
-                                    httpsAgent: agent,
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                        "Signature": Signature
-                                    },
-                                    data: requestData
-                                }).then(res => {
-                                    let response = {
-                                        status : res.data.response_status,
-                                        error : res.data.error,
-                                        data : res.data
-                                    }
-                                    return response
-                                }).catch(error => {
-                                    let err = {
-                                        status : res.data.response_status,
-                                        error : res.data.error,
-                                        data : res.data
-                                    }
-                                    return err
-                                });
-                                console.log(inquiry_withdrawal);
-                                if (inquiry_withdrawal.status == "SUCCESS") {
-                                    let nominal = `00000000000${cek_hold_dana[0].amount}00`
-                                    let nilai = formatRibuan(cek_hold_dana[0].amount)
-                                    nominal = nominal.substring(nominal.length-12, nominal.length)
-                                    // response = await error_response(data,response,nominal,null,`NAMA  = ${kartu[0].nama_rek}`,`NILAI = Rp. ${nilai}`,null,null,null,"00","Transaksi Berhasil")
-                                    response = await error_response(
-                                        data,
-                                        response,
-                                        nominal,
-                                        null,
-                                        `NAMA = ${kartu[0].nama_rek}`,
-                                        `NILAI = Rp. ${nilai}`,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        "00",
-                                        "Transaksi Berhasil")
+                                if (!select_hold_dana.length) {
+                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"99","Hold Dana Tidak Ditemukan")
                                     await send_log(data,response)
-                                    console.log(response); 
+                                    console.log(response);
                                     res.status(200).send(
-                                        response
+                                        response,
+                                    );
+                                } else { 
+                                    let [results, metadata] = await db.sequelize.query(
+                                        `UPDATE dummy_hold_dana SET tgl_inquiry = ?, reference_number = ?, token = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND reff = ? AND tcode = '1000' AND amount = ? AND status = '0' AND token = 'NULL' AND reference_number = 'NULL'`,
+                                        {
+                                        replacements: [
+                                            tgl_trans,
+                                            reference_number,
+                                            data.OTP,
+                                            kartu[0].no_rek,
+                                            no_hp,
+                                            bpr_id,
+                                            select_hold_dana[0].reff,
+                                            amount
+                                        ],
+                                        }
+                                    );
+                                    if (!metadata) {
+                                        response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"99","Hold Dana Tidak Ditemukan")
+                                        await send_log(data,response)
+                                        console.log(response);
+                                        res.status(200).send(
+                                            response,
+                                        );
+                                    } else {
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `UPDATE dummy_transaksi SET reference_number = ? WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND reff = ? AND tgl_trans = ? AND status_rek = '0'`,
+                                            {
+                                                replacements: [
+                                                    cek_token[0].reference_number,
+                                                    kartu[0].no_rek,
+                                                    kartu[0].nama_rek,
+                                                    amount,
+                                                    select_hold_dana[0].reff,
+                                                    select_hold_dana[0].tgl_trans
+                                                ],
+                                            }
+                                        );
+                                        if (!metadata) {
+                                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"99","Hold Dana Tidak Ditemukan")
+                                            await send_log(data,response)
+                                            console.log(response);
+                                            res.status(200).send(
+                                                response,
+                                            );
+                                        } else {
+                                            let [results, metadata] = await db.sequelize.query(
+                                                `UPDATE token SET status = '1', reference_number = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND status = '0'`,
+                                                {
+                                                replacements: [
+                                                    reference_number,
+                                                    kartu[0].no_rek,
+                                                    no_hp,
+                                                    bpr_id
+                                                ],
+                                                }
+                                            );
+                                            // response = await error_response(data,response,nominal,null,`NAMA  = ${kartu[0].nama_rek}`,`NILAI = Rp. ${nilai}`,null,null,null,"00","Transaksi Berhasil")
+                                            response = await error_response(
+                                                data,
+                                                response,
+                                                nominal,
+                                                null,
+                                                `NAMA = ${kartu[0].nama_rek}`,
+                                                `NILAI = Rp. ${nilai}`,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                null,
+                                                "00",
+                                                "Transaksi Berhasil")
+                                            await send_log(data,response)
+                                            console.log(response); 
+                                            res.status(200).send(
+                                                response
+                                            );
+                                        }
+                                    }
+                                }
+                            } else {
+                                let [results, metadata] = await db.sequelize.query(
+                                    `UPDATE dummy_hold_dana SET tgl_inquiry = ?, reference_number = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND reference_number = ? AND token = ? AND tcode = '1000' AND amount = ? AND status = '0'`,
+                                    {
+                                    replacements: [
+                                        tgl_trans,
+                                        reference_number,
+                                        kartu[0].no_rek,
+                                        no_hp,
+                                        bpr_id,
+                                        cek_hold_dana[0].reference_number,
+                                        data.OTP,
+                                        amount
+                                    ],
+                                    }
+                                );
+                                if (!metadata) {
+                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"99","Hold Dana Tidak Ditemukan")
+                                    await send_log(data,response)
+                                    console.log(response);
+                                    res.status(200).send(
+                                        response,
                                     );
                                 } else {
-                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK","GAGAL INQUIRY TARIK TUNAI",null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
-                                    await send_log(data,response)
-                                    console.log(response); 
-                                    res.status(200).send(
-                                       response,
+                                    let [results, metadata] = await db.sequelize.query(
+                                        `UPDATE dummy_transaksi SET reference_number = ? WHERE no_rek = ? AND nama_rek = ? AND tcode = '1000' AND produk_id = 'tariktunai' AND amount = ? AND reff = ? AND tgl_trans = ? AND status_rek = '0'`,
+                                        {
+                                            replacements: [
+                                                cek_token[0].reference_number,
+                                                kartu[0].no_rek,
+                                                kartu[0].nama_rek,
+                                                amount,
+                                                cek_hold_dana[0].reff,
+                                                cek_hold_dana[0].tgl_trans
+                                            ],
+                                        }
                                     );
+                                    if (!metadata) {
+                                        response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"99","Hold Dana Tidak Ditemukan")
+                                        await send_log(data,response)
+                                        console.log(response);
+                                        res.status(200).send(
+                                            response,
+                                        );
+                                    } else {
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `UPDATE token SET status = '1', reference_number = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND status = '0'`,
+                                            {
+                                            replacements: [
+                                                reference_number,
+                                                kartu[0].no_rek,
+                                                no_hp,
+                                                bpr_id
+                                            ],
+                                            }
+                                        );
+                                    // response = await error_response(data,response,nominal,null,`NAMA  = ${kartu[0].nama_rek}`,`NILAI = Rp. ${nilai}`,null,null,null,"00","Transaksi Berhasil")
+                                        response = await error_response(
+                                            data,
+                                            response,
+                                            nominal,
+                                            null,
+                                            `NAMA = ${kartu[0].nama_rek}`,
+                                            `NILAI = Rp. ${nilai}`,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            null,
+                                            "00",
+                                            "Transaksi Berhasil")
+                                        await send_log(data,response)
+                                        console.log(response); 
+                                        res.status(200).send(
+                                            response
+                                        );
+                                    }
                                 }
                             }
-                        // } else {
-                        //     let [results, metadata] = await db.sequelize.query(
-                        //         `UPDATE token SET status = '2' WHERE token = ? AND no_rek = ? AND status = '0'`,
-                        //         {
-                        //         replacements: [
-                        //             data.OTP,
-                        //             kartu[0].no_rek
-                        //         ],
-                        //         }
-                        //     );
-                        //     if (!metadata) {
-                        //         response = await error_response(data,response,"","TRANSAKSI DI TOLAK","GAGAL UPDATE TOKEN",null,null,null,null,null,null,null,null,null,null,null,"99","Gagal Merubah Status Token")
-                        //         await send_log(data,response)
-                        //         console.log(response); 
-                        //         res.status(200).send(
-                        //            response,
-                        //         );
-                        //     } else {
-                        //         response = await error_response(data,response,"","TRANSAKSI DI TOLAK","TOKEN EXPIRED",null,null,null,null,null,null,null,null,null,null,null,"81","Token Expired")
-                        //         await send_log(data,response)
-                        //         console.log(response); 
-                        //         res.status(200).send(
-                        //            response,
-                        //         );
-                        //     }
-                        // }
+                        } else {
+                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK","INVALID TRANSACTION",null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
+                            await send_log(data,response)
+                            console.log(response); 
+                            res.status(200).send(
+                                response,
+                            );
+                        }
+                    } else {
+                        response = await error_response(data,response,"","TRANSAKSI DI TOLAK","GAGAL INQUIRY TARIK TUNAI",null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
+                        await send_log(data,response)
+                        console.log(response); 
+                        res.status(200).send(
+                            response,
+                        );
                     }
                 }
             }
-            // Cek Token (bpr_id, no_hp, expired, nominal)
-
-            // jika ada > ke Core Banking untuk (trans type KAS seperti tcode 40000)
-
-            // kirim req tartun ke CMW
-
-            // release token (status = 1)
-
-            // hit API Middleware Tarik tunai notif
-
-            // kirim response ke ATM
         }
     }
   } catch (error) {

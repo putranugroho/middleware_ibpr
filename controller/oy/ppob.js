@@ -31,27 +31,16 @@ const agent = new https.Agent({
 
 // API untuk Access Webview
 const webview = async (req, res) => {
-    let {no_rek, no_hp, bpr_id, reff, amount, tgl_trans} = req.body;
+    let {no_rek, no_hp, bpr_id, rrn, amount, tgl_trans} = req.query;
+	console.log(no_hp);
     try {
         let response = {
             no_hp,
             bpr_id,
             no_rek,
-            reff
+            rrn
         }
-        res.redirect('https://mpin.medtransdigital.com')
-    } catch (error) {
-      //--error server--//
-      console.log("erro get product", error);
-      res.send(error);
-    }
-};
-
-// API untuk Access Webview
-const webview2 = async (req, res) => {
-    // let {no_rek, no_hp, bpr_id, reff, amount, tgl_trans} = req.body;
-    try {
-        res.status(200).redirect('https://mpin.medtransdigital.com')
+        res.redirect(`https://mpin.medtransdigital.com/${no_rek}/${no_hp}/${bpr_id}/${rrn}/${amount}/${tgl_trans}`)
     } catch (error) {
       //--error server--//
       console.log("erro get product", error);
@@ -65,7 +54,7 @@ const bill_payment = async (req, res) => {
         no_hp,
         bpr_id,
         no_rek,
-        produk_id,
+        product_name,
         trx_code,
         trx_type,
         amount,
@@ -80,62 +69,7 @@ const bill_payment = async (req, res) => {
 //     "YYYYMMDD"
 //   )}/${new Date().getTime()}`;
     try {
-//     let Request = await axios.post("/api/v2/bill", {
-//         customer_id : no_hp,
-//         product_id : produk_id,
-//         partner_tx_id,
-//         amount,
-//     });
-
-//     // console.log(Request);
-
-//     if (Request.data.status.code === "000") {
-//       //--berhasil dapat list product update atau insert ke db --//
-
-//       // console.log("data", Request.data.data);
-//       const payload = {
-//         trcode: trx_code,
-//         no_rek,
-//         no_hp,
-//         bpr_id,
-//         nama_rek: Request.data.data.customer_name,
-//         produk_id: Request.data.data.product_id,
-//         ket_trans: `${no_hp} ${produk_id} ${Request.data.data.customer_name}`,
-//         reff: Request.data.data.partner_tx_id,
-//         amount:
-//           Request.data.data.amount + Request.data.data.admin_fee,
-//         //   parseInt(JSON.parse(Request.data.data.additional_data).admin_fee),
-//         tgljam_trans: moment(dateTimeDb[0].now).format("YYYY-MM-DD HH:mm:ss"),
-//       };
-
-//       let [results, metadata] = await db.sequelize.query(
-//         `INSERT INTO dummy_transaksi(no_rek, tcode, produk_id, ket_trans, reff, amount, tgljam_trans, status_rek, nama_rek, no_hp, bpr_id) VALUES (?,?,?,?,?,?,?,'0',?,?,?)`,
-//         {
-//           replacements: [
-//             payload.no_rek,
-//             payload.tcode,
-//             payload.produk_id,
-//             payload.ket_trans,
-//             payload.reff,
-//             payload.amount,
-//             payload.tgljam_trans,
-//             payload.nama_rek,
-//             payload.no_hp,
-//             payload.bpr_id,
-//           ],
-//         }
-//       );
-
-//       // console.log(metadata);
-
-//       if (!metadata) {
-//         res.status(200).send({
-//           rcode: "099",
-//           status: "ok",
-//           message: "Gagal, Terjadi Kesalahan Insert Transaksi!!!",
-//           data: null,
-//         });
-//       } else {
+        tgl_trans = moment(tgl_trans).format("YYMMDDHHmmss")
         let check_bpr = await db.sequelize.query(
             `SELECT bpr_id, nama_bpr FROM kd_bpr WHERE bpr_id = ?`,
             {
@@ -169,28 +103,72 @@ const bill_payment = async (req, res) => {
                 let saldo = parseInt(check_saldo[0].saldo);
                 let saldo_min = parseInt(check_saldo[0].saldo_min);
                 if (saldo - amount > saldo_min) {
-                    let response = {
-                        no_hp,
-                        bpr_id,
-                        no_rek,
-                        nama_rek: check_saldo[0].nama_rek,
-                        amount,
-                        trans_fee,
-                        trx_code,
-                        trx_type,
-                        reff : "TT/TEST ACCOUNT/20220906/1662476661308",
-                        tgl_trans,
-                        tgl_transmis : moment().add(number, "minute").format('YYYY-MM-DD HH:mm:ss'),
-                        rrn
-                    }
-                    //--berhasil dapat list product update atau insert ke db --//
-                    console.log("Success");
+                    let [results, metadata] = await db.sequelize.query(
+                        `UPDATE dummy_rek_tabungan SET saldo = saldo - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                        {
+                            replacements: [amount, no_rek, no_hp, bpr_id],
+                        }
+                        );
+                    if (!metadata) {
                     res.status(200).send({
-                        rcode: "000",
+                        code: "099",
                         status: "ok",
-                        message: "Success",
-                        data: response,
+                        message: "Gagal, Terjadi Kesalahan Update Saldo!!!",
+                        data: null,
                     });
+                    } else {
+                        let receiptNo = generateString(20);
+                        let reff = `PPOB/${check_saldo[0].nama_rek}/${moment().format('YYMMDDHHmmss')}/${receiptNo}`
+                        let [results, metadata] = await db.sequelize.query(
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, tgl_trans, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,'1')`,
+                            {
+                            replacements: [
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                check_saldo[0].nama_rek,
+                                trx_code,
+                                "PPOB",
+                                product_name,
+                                reff,
+                                amount,
+                                tgl_trans
+                            ],
+                            }
+                        );
+                        if (!metadata) {
+                            res.status(200).send({
+                            code: "099",
+                            status: "ok",
+                            message: "Gagal, Terjadi Kesalahan Insert Transaksi!!!",
+                            data: null,
+                            });
+                        } else {
+                            let response = {
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                nama_rek: check_saldo[0].nama_rek,
+                                product_name,
+                                amount,
+                                trans_fee,
+                                trx_code,
+                                trx_type,
+                                reff,
+                                tgl_trans,
+                                tgl_transmis : moment().format('YYYY-MM-DD HH:mm:ss'),
+                                rrn
+                            }
+                            //--berhasil dapat list product update atau insert ke db --//
+                            console.log("Success");
+                            res.status(200).send({
+                                rcode: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: response,
+                            });
+                        }
+                    }
                 } else {
                     res.status(200).send({
                         code: "099",
@@ -268,7 +246,7 @@ const check_status_ppob = async (req, res) => {
                 status: "ok",
                 message: "Success",
                 data: response,
-            });
+            }); 
         // }
     } catch (error) {
       //--error server--//
@@ -345,7 +323,6 @@ const reversal_ppob = async (req, res) => {
 
 module.exports = {
     webview,
-    webview2,
     bill_payment,
     check_status_ppob,
     reversal_ppob
