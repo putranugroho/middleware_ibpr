@@ -1,5 +1,5 @@
 const express = require("express");
-const { inquiry_account, validate_user} = require("../controller/oy/onboarding");
+const { inquiry_account, validate_user, otp_mpin} = require("../controller/oy/onboarding");
 const { webview, bill_payment, check_status_ppob, reversal_ppob} = require("../controller/oy/ppob");
 const { request_withdrawal, check_status_withdrawal, reversal_withdrawal } = require("../controller/oy/withdrawal");
 
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post("/inquiry_acc", inquiry_account);
 router.post("/validate_user", validate_user);
+router.post("/otp_mpin", otp_mpin);
 router.get("/webview", webview);
 router.post("/bill_payment", bill_payment);
 router.post("/check_status_ppob", check_status_ppob);
