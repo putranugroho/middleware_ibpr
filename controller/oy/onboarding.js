@@ -80,9 +80,8 @@ var connect_axios = async (kd, userid, trcid, data, timestamp) => {
         let Result = ""
         await axios({
             method: 'post',
-            // url: 'http://192.168.32.98:12010/mgp/api-atm',
-            url: 'http://192.168.32.98:12211/mgp/api-atm',
-            // url: 'http://103.101.225.212:12413/mgp/api-atm',
+            url: 'http://112.78.38.250:21529/mgp/api-atm',
+            // url: 'http://192.168.32.98:12211/mgp/api-atm',
             timeout: 25000, //milisecond
             headers: {
                 'api-signature': api_signature,
@@ -148,22 +147,23 @@ const otp_mpin = async (req, res) => {
     // const data = req.body
     let {no_rek, no_hp, bpr_id, tgl_trans, rrn} = req.body;
     try {
+        let response = {}
         let request_data = {}
-        let account = await db.sequelize.query(
-            `SELECT no_hp, bpr_id, no_rek, nama_rek FROM acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'` ,
-            {
-                replacements: [bpr_id, no_hp, no_rek],
-                type: db.sequelize.QueryTypes.SELECT,
-            }
-        )
-        if (!account.length) {
-            res.status(200).send({
-                rcode: "999",
-                status: "ok",
-                message: "Gagal Account Tidak Ditemukan",
-                data: null,
-            });
-        } else {
+        // let account = await db.sequelize.query(
+        //     `SELECT no_hp, bpr_id, no_rek, nama_rek FROM acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'` ,
+        //     {
+        //         replacements: [bpr_id, no_hp, no_rek],
+        //         type: db.sequelize.QueryTypes.SELECT,
+        //     }
+        // )
+        // if (!account.length) {
+        //     res.status(200).send({
+        //         rcode: "999",
+        //         status: "ok",
+        //         message: "Gagal Account Tidak Ditemukan",
+        //         data: null,
+        //     });
+        // } else {
             let random_number = await generateNumber(6)
             let [results, metadata] = await db.sequelize.query(
                 `INSERT INTO sms_mpin(no_hp, bpr_id, no_rek, nama_rek, mpin, tgl_trans, status) VALUES (?,?,?,?,?,?,'0')`,
@@ -172,7 +172,8 @@ const otp_mpin = async (req, res) => {
                     no_hp,
                     bpr_id,
                     no_rek,
-                    account[0].nama_rek,
+                    // account[0].nama_rek,
+                    "TEST",
                     random_number,
                     tgl_trans,
                 ],
@@ -191,25 +192,25 @@ const otp_mpin = async (req, res) => {
                 request_data['pesan'] = `MPIN ANDA ADALAH: ${random_number}`
                 // request_data["noreff"] = data.RESI
                     
-                let response = await connect_axios("8020", "000000001", rrn, request_data, tgl_trans)
-                console.log(response);
+                let mgp_request = await connect_axios("8020", "000000001", rrn, request_data, tgl_trans)
+                console.log(mgp_request);
                 
                 // data['kodetransaksi'] = data.KODETRX
-                data['nohp'] = no_hp
-                data['norek'] = no_rek
-                data['nama'] = nama_rek
-                // data['saldo'] = `1002360C${saldo_kartu}`
-                data['rcode'] = "000"
-                data['message'] = "SUCCESS"
+                response['nohp'] = no_hp
+                response['norek'] = no_rek
+                // response['nama'] = account[0].nama_rek
+                // response['saldo'] = `1002360C${saldo_kartu}`
+                response['rcode'] = "000"
+                response['message'] = "SUCCESS"
                 
                 console.log("========================================================================");
                 console.log("Response sms mpin : ");
-                console.log(data);
+                console.log(response);
                 console.log("========================================================================");
                 
-                res.send(data)
+                res.send(response)
             }
-        }
+        // }
     } catch (error) {
       //--error server--//
       console.log("erro get product", error);
