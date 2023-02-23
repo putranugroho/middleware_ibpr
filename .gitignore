@@ -1,2 +1,7 @@
 node_modules
 .env
+controller/oy/test.json
+controller/gateway_atm.js
+controller/gateway_atm_new.js
+controller/gateway_bpr.js
+controller/ibprdev.js

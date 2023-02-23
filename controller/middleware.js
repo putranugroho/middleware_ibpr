@@ -50,7 +50,7 @@ const login = async (req, res) => {
         if (!response.length) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Login",
                 data: null,
             });
@@ -69,6 +69,28 @@ const login = async (req, res) => {
     }
 };
 
+// Login Admin
+const encrypt = async (req, res) => {
+    let {password} = req.body;
+    try {
+        password = `${((parseInt(password) + 111111 - 999999) / 2)}`
+        let Password = await encryptStringWithRsaPublicKey(
+            password,
+            "./utility/privateKey.pem"
+        );
+        res.status(200).send({
+            code: "000",
+            status: "ok",
+            message: "Success",
+            data: Password,
+        });
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
 // API untuk tarik product
 const get_product = async (req, res) => {
     try {
@@ -80,8 +102,8 @@ const get_product = async (req, res) => {
         );
         if (!list_produk.length) {
             res.status(200).send({
-                code: "001",
-                status: "ok",
+                code: "011",
+                status: "Failed",
                 message: "Gagal Menarik Produk",
                 data: null,
             });
@@ -135,7 +157,7 @@ const register_admin = async (req, res) => {
         if (!metadata) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Membuat Akun",
                 data: null,
             });
@@ -167,7 +189,7 @@ const block_acct = async (req, res) => {
         if (!metadata) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Memblokir Account eBpr",
                 data: null,
             });
@@ -199,7 +221,7 @@ const unlock_acct = async (req, res) => {
         if (!metadata) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Merubah Status Account eBpr",
                 data: null,
             });
@@ -231,8 +253,8 @@ const registrasi = async (req, res) => {
         );
         if (cek_no_hp.length > 0) {
             res.status(200).send({
-              code: "003",
-              status: "ok",
+              code: "005",
+              status: "Failed",
               message: "No Handphone Sudah Digunakan",
               data: null,
             });
@@ -246,8 +268,8 @@ const registrasi = async (req, res) => {
             );
             if (cek_user_id.length > 0) {
                 res.status(200).send({
-                code: "003",
-                status: "ok",
+                code: "005",
+                status: "Failed",
                 message: "User ID Sudah Terdaftar",
                 data: null,
                 });
@@ -269,8 +291,8 @@ const registrasi = async (req, res) => {
                 );
                 if (!metadata) {
                     res.status(200).send({
-                    code: "003",
-                    status: "ok",
+                    code: "001",
+                    status: "Failed",
                     message: "Gagal Mendaftarkan Akun",
                     data: null,
                     });
@@ -305,7 +327,7 @@ const print_mailer = async (req, res) => {
         if (!response.length) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Mencetak Mailer",
                 data: null,
             });
@@ -337,7 +359,7 @@ const delete_mailer = async (req, res) => {
         if (!metadata) {
             res.status(200).send({
                 code: "001",
-                status: "ok",
+                status: "Failed",
                 message: "Gagal Menghapus Account eBpr",
                 data: null,
             });
@@ -367,8 +389,8 @@ const list_bpr = async (req, res) => {
         );
         if (!response.length) {
             res.status(200).send({
-                code: "001",
-                status: "ok",
+                code: "002",
+                status: "Failed",
                 message: "Gagal Mencari List BPR",
                 data: null,
             });
@@ -389,6 +411,7 @@ const list_bpr = async (req, res) => {
 
 module.exports = {
     login,
+    encrypt,
     register_admin,
     block_acct,
     unlock_acct,

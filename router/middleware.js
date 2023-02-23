@@ -1,5 +1,6 @@
 const express = require("express");
 const { login,
+    encrypt,
     register_admin,
     block_acct,
     unlock_acct,
@@ -13,6 +14,7 @@ const fs = require('fs')
 const multer = require('multer')
 const router = express.Router();
 const db = require("../connection"); 
+const db2 = require("../connection/ibprdev"); 
 
 // __dirname: alamat folder file userRouter.js
 const rootdir = path.join(__dirname,'/..')
@@ -47,6 +49,7 @@ const upstore = multer(
 )
 
 router.post("/login", login);
+router.post("/encrypt", encrypt);
 router.post("/register/admin", register_admin);
 router.post("/block", block_acct);
 router.post("/unlock", unlock_acct);
@@ -68,8 +71,8 @@ router.post('/upload', upstore.single('logo'), async (req, res) => {
     );
     if (!metadata) {
         res.status(200).send({
-            code: "003",
-            status: "ok",
+            code: "001",
+            status: "Failed",
             message: "Gagal Mengupload Logo",
             data: null,
         });
@@ -108,8 +111,8 @@ router.get("/bpr/:bpr_id", async (req,res)=>{
         );
         if (!response.length) {
             res.status(200).send({
-                code: "001",
-                status: "ok",
+                code: "002",
+                status: "Failed",
                 message: "Gagal BPR Tidak Ditemukan",
                 data: null,
             });

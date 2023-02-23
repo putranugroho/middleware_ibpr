@@ -24,7 +24,7 @@ const send_log = async (data, response) => {
         text20 = ${response.text20}`
         // console.log(text);
         let [results, metadata] = await db.sequelize.query(
-            `INSERT INTO log_transaksi(nokartu, waktu, kodetrx, jumlahtx, otp, pin, tid, terminalid, jenistx, jumlah_tx, kode_trx, no_kartu, tid_, rcode, message, text1, message_type, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${text}','RESPONSE','0')`,
+            `INSERT INTO log_atm(nokartu, waktu, kodetrx, jumlahtx, otp, pin, tid, terminalid, jenistx, jumlah_tx, kode_trx, no_kartu, tid_, rcode, message, text1, message_type, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'${text}','RESPONSE','0')`,
             {
               replacements: [
                 data.NOKARTU, 
@@ -40,7 +40,7 @@ const send_log = async (data, response) => {
                 response.kodetrx,
                 response.nokartu,
                 response.tid,
-                response.rcode,
+                response.code,
                 response.message
               ],
             }
@@ -53,6 +53,7 @@ const error_response = async (data, response, jumlahtx, text1, text2, text3, tex
     response["kodetrx"] = data.KODETRX
     response["nokartu"] = data.NOKARTU
     response["tid"] = data.TID
+    response["terminalid"] = data.TERMINALID
     response["text1"] = text1
     response["text2"] = text2
     response["text3"] = text3

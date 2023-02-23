@@ -5,7 +5,6 @@ var fs = require("fs");
 const encryptStringWithRsaPublicKey = (originMSG, private) => {
   let absolutePath = path.resolve(private);
   var privateKey = fs.readFileSync(absolutePath, "utf8");
-
   let encmsg = crypto
     .privateEncrypt(
       { key: privateKey, passphrase: process.env.SECRET_KEY },
