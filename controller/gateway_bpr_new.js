@@ -773,7 +773,6 @@ const transfer = async (req, res) => {
                                     } else {
                                         //--berhasil dapat list product update atau insert ke db --//
                                         console.log("Success");
-                                        // console.log("Transfer Out Timeout");
                                         res.status(200).send({
                                             code: "000",
                                             status: "ok",
@@ -1344,13 +1343,13 @@ const withdrawal = async (req, res) => {
                                         request.data['keterangan'] = keterangan
                                         //--berhasil dapat list product update atau insert ke db --//
                                         console.log("Success");
-                                        // console.log("Token Gateway Timeout");
-                                        res.status(200).send({
-                                            code: "000",
-                                            status: "ok",
-                                            message: "Success",
-                                            data: request.data,
-                                        });
+                                        console.log("Token Gateway Timeout");
+                                        // res.status(200).send({
+                                        //     code: "000",
+                                        //     status: "ok",
+                                        //     message: "Success",
+                                        //     data: request.data,
+                                        // });
                                     }
                                 }
                             }
@@ -2416,41 +2415,19 @@ const mpin = async (req, res) => {
                                     if (total <= limit_trx) {
                                         if (counter_transaksi + total <= limit_harian) {
                                             let token_mpin = generateString(20);
-                                            let [results, metadata] = await db.sequelize.query(
-                                                `INSERT INTO token_mpin(no_hp, bpr_id, no_rek, token_mpin, tgl_trans, tcode, status) VALUES (?,?,?,?,?,?,'0')`,
-                                                {
-                                                    replacements: [
-                                                        no_hp,
-                                                        bpr_id,
-                                                        no_rek,
-                                                        token_mpin,
-                                                        tgl_trans,
-                                                        trx_code
-                                                    ],
-                                                }
-                                            );
-                                            if (!metadata) {
-                                                res.status(200).send({
-                                                code: "001",
-                                                status: "Failed",
-                                                message: "Gagal, Terjadi Kesalahan Membuat Token mPIN!!!",
-                                                data: null,
-                                                });
-                                            } else {
-                                                res.status(200).send({
-                                                    code: "000",
-                                                    status: "Success",
-                                                    message: "Transaksi anda berhasil diproses",
-                                                    data: {
-                                                        no_hp,
-                                                        bpr_id,
-                                                        no_rek,
-                                                        nama_rek : Auth[0].nama_rek,
-                                                        token_mpin,
-                                                        tgl_trans
-                                                    },
-                                                });
-                                            }
+                                            res.status(200).send({
+                                                code: "000",
+                                                status: "Success",
+                                                message: "Transaksi anda berhasil diproses",
+                                                data: {
+                                                    no_hp,
+                                                    bpr_id,
+                                                    no_rek,
+                                                    nama_rek : Auth[0].nama_rek,
+                                                    token_mpin,
+                                                    tgl_trans
+                                                },
+                                            });
                                         } else {
                                             res.status(200).send({
                                                 code: "009",

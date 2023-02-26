@@ -284,20 +284,42 @@ const validate_mpin = async (req, res) => {
                 console.log(request);
                 res.status(200).send(request);
             } else {
-                console.log({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: request.data,
-                });
-                res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: request.data,
-                });
+                let [results, metadata] = await db.sequelize.query(
+                    `INSERT INTO token_mpin(no_hp, bpr_id, no_rek, token_mpin, tgl_trans, tcode, status) VALUES (?,?,?,?,?,?,'0')`,
+                    {
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            request.data.token_mpin,
+                            tgl_trans,
+                            trx_code
+                        ],
+                    }
+                );
+                if (!metadata) {
+                    res.status(200).send({
+                    code: "001",
+                    status: "Failed",
+                    message: "Gagal, Terjadi Kesalahan Membuat Token mPIN!!!",
+                    data: null,
+                    });
+                } else {
+                    console.log({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: request.data,
+                    });
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: request.data,
+                    });
+                }
             }
         }
 
