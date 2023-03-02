@@ -172,112 +172,176 @@ const request_withdrawal = async (req, res) => {
                 data: null,
             });
         } else {
-            if (trx_type === "TRX") {
-                const keterangan = `TOKEN ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
-                const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
-                const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
-                if (request.code !== "000") {
-                    console.log("request");
-                    console.log(request);
-                    let [results, metadata] = await db.sequelize.query(
-                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
-                        {
-                        replacements: [
-                            no_hp,
-                            bpr_id,
-                            no_rek,
-                            "",
-                            trx_code,
-                            "Token",
-                            request.message,
-                            "",
-                            amount,
-                            trans_fee,
-                            tgl_trans,
-                            "",
-                            rrn,
-                            request.code
-                        ],
-                        }
-                    );
-                    res.status(200).send(request);
-                } else {
-                    console.log("request.data");
-                    console.log(request.data);
-                    let [results, metadata] = await db.sequelize.query(
-                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
-                        {
-                        replacements: [
-                            no_hp,
-                            bpr_id,
-                            no_rek,
-                            request.data.nama,
-                            trx_code,
-                            "Tarik Tunai",
-                            keterangan,
-                            request.data.noreff,
-                            amount,
-                            trans_fee,
-                            tgl_trans,
-                            "",
-                            rrn,
-                            request.code
-                        ],
-                        }
-                    );
-                    console.log({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: request.data,
-                    });
-                    res.status(200).send({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: request.data,
-                    });
+            let check_token_mpin = await db.sequelize.query(
+                `SELECT * FROM token_mpin WHERE token_mpin = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ?`,
+                {
+                    replacements: [token_mpin, no_rek, no_hp, bpr_id, trx_code],
+                    type: db.sequelize.QueryTypes.SELECT,
                 }
-            } else if (trx_type === "REV") {
-                const keterangan = `Token ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
-                const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
-                const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
-                if (request.code !== "000") {
-                    console.log("request");
-                    console.log(request);
-                    res.status(200).send(request);
-                } else {
-                    console.log("request.data");
-                    console.log(request.data);
-                    let [results2, metadata2] = await db.sequelize.query(
-                        `UPDATE dummy_transaksi SET status_rek = 'R' WHERE no_hp = ? AND bpr_id = ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
-                        {
-                        replacements: [
-                            no_hp,
-                            bpr_id,
-                            no_rek,
-                            "1000",
-                            amount,
-                            rrn
-                        ],
-                        }
-                    );
+            );
+            if (!check_token_mpin.length) {
+                console.log({
+                    code: "009",
+                    status: "ok",
+                    message: "Gagal, MPIN Belum Tervalidasi!!!",
+                    rrn: rrn,
+                    data: null,
+                });
+                res.status(200).send({
+                    code: "009",
+                    status: "ok",
+                    message: "Gagal, MPIN Belum Tervalidasi!!!",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                if (check_token_mpin[0].status == "1") {
                     console.log({
-                        code: "000",
+                        code: "009",
                         status: "ok",
-                        message: "Success",
+                        message: "Gagal, Token Validasi MPIN Sudah Digunakan!!!",
                         rrn: rrn,
-                        data: request.data,
+                        data: null,
                     });
                     res.status(200).send({
-                        code: "000",
+                        code: "009",
                         status: "ok",
-                        message: "Success",
+                        message: "Gagal, Token Validasi MPIN Sudah Digunakan!!!",
                         rrn: rrn,
-                        data: request.data,
+                        data: null,
                     });
+                } else if (check_token_mpin[0].status == "0") {
+                    if (trx_type === "TRX") {
+                        const keterangan = `TOKEN ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
+                        const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
+                        const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
+                        if (request.code !== "000") {
+                            console.log("request");
+                            console.log(request);
+                            let [results, metadata] = await db.sequelize.query(
+                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    "",
+                                    trx_code,
+                                    "Token",
+                                    keterangan,
+                                    "",
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    "",
+                                    rrn,
+                                    request.code,
+                                    request.message,
+                                ],
+                                }
+                            );
+                            res.status(200).send(request);
+                        } else {
+                            console.log("request.data");
+                            console.log(request.data);
+                            let [results, metadata] = await db.sequelize.query(
+                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    request.data.nama,
+                                    trx_code,
+                                    "Tarik Tunai",
+                                    keterangan,
+                                    request.data.noreff,
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    "",
+                                    rrn,
+                                    request.code
+                                ],
+                                }
+                            );
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                        }
+                    } else if (trx_type === "REV") {
+                        const keterangan = `Token ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
+                        const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
+                        const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
+                        if (request.code !== "000") {
+                            console.log("request");
+                            console.log(request);
+                            let [results, metadata] = await db.sequelize.query(
+                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    "",
+                                    trx_code,
+                                    "Token",
+                                    keterangan,
+                                    "",
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    "",
+                                    rrn,
+                                    request.code,
+                                    request.message,
+                                ],
+                                }
+                            );
+                            res.status(200).send(request);
+                        } else {
+                            console.log("request.data");
+                            console.log(request.data);
+                            let [results2, metadata2] = await db.sequelize.query(
+                                `UPDATE dummy_transaksi SET status_rek = 'R' WHERE no_hp = ? AND bpr_id = ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    "1000",
+                                    amount,
+                                    rrn
+                                ],
+                                }
+                            );
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                        }
+                    }
                 }
             }
         }
@@ -456,55 +520,64 @@ const release_withdrawal = async (req, res) => {
                             const trx_code = "0500"
                             const data_nasabah = {no_rek:"", no_hp, bpr_id, trx_code, status:"", tgl_trans, tgl_transmis:moment().format('YYMMDDHHmmss'), rrn}
                             const nasabah = await connect_axios(bpr[0].gateway,"gateway_bpr/inquiry_account",data_nasabah)
-                            amount = inquiry_withdrawal.data.data.amount.value
-                            trans_fee = inquiry_withdrawal.data.data.fee.value
-                            // const data_gateway = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1000", trx_type, token, keterangan, terminal_id, lokasi:get_atm[0].lokasi, tgl_trans, tgl_transmis:moment().format('YYMMDDHHmmss'), rrn}
-                            // const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_gateway)
-                            let nominal = `00000000000${amount}00`
-                            let nilai = formatRibuan(amount)
-                            nominal = nominal.substring(nominal.length-12, nominal.length)
-                            console.log(nasabah);
-                            let [results, metadata] = await db.sequelize.query(
-                                `INSERT INTO token(no_hp, bpr_id, no_rek, tgl_trans, reference_number, token_access, amount, trans_fee, terminal_id, keterangan, status) VALUES (?,?,?,?,?,?,?,?,?,?,'0')`,
-                                {
-                                replacements: [
-                                    no_hp,
-                                    bpr_id,
-                                    nasabah.data.no_rek,
-                                    tgl_trans,
-                                    reference_number,
-                                    token_access.token,
-                                    amount,
-                                    0,
-                                    get_atm[0].atm_id,
-                                    keterangan
-                                ],
-                                }
-                            );
-                            response = await error_response(
-                                data,
-                                response,
-                                nominal,
-                                null,
-                                `NAMA = ${nasabah.data.nama_rek}`,
-                                `NILAI = Rp. ${nilai}`,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                "00",
-                                "Transaksi Berhasil")
-                            // await send_log(data,response)
-                            console.log(response); 
-                            res.status(200).send(response);
+                            if (request.code !== "000") {
+                                response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
+                                await send_log(data,response)
+                                console.log(response);
+                                res.status(200).send(
+                                    response,
+                                );
+                            } else {
+                                amount = inquiry_withdrawal.data.data.amount.value
+                                trans_fee = inquiry_withdrawal.data.data.fee.value
+                                // const data_gateway = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1000", trx_type, token, keterangan, terminal_id, lokasi:get_atm[0].lokasi, tgl_trans, tgl_transmis:moment().format('YYMMDDHHmmss'), rrn}
+                                // const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_gateway)
+                                let nominal = `00000000000${amount}00`
+                                let nilai = formatRibuan(amount)
+                                nominal = nominal.substring(nominal.length-12, nominal.length)
+                                console.log(nasabah);
+                                let [results, metadata] = await db.sequelize.query(
+                                    `INSERT INTO token(no_hp, bpr_id, no_rek, tgl_trans, reference_number, token_access, amount, trans_fee, terminal_id, keterangan, status) VALUES (?,?,?,?,?,?,?,?,?,?,'0')`,
+                                    {
+                                    replacements: [
+                                        no_hp,
+                                        bpr_id,
+                                        nasabah.data.no_rek,
+                                        tgl_trans,
+                                        reference_number,
+                                        token_access.token,
+                                        amount,
+                                        0,
+                                        get_atm[0].atm_id,
+                                        keterangan
+                                    ],
+                                    }
+                                );
+                                response = await error_response(
+                                    data,
+                                    response,
+                                    nominal,
+                                    null,
+                                    `NAMA = ${nasabah.data.nama_rek}`,
+                                    `NILAI = Rp. ${nilai}`,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    "00",
+                                    "Transaksi Berhasil")
+                                // await send_log(data,response)
+                                console.log(response); 
+                                res.status(200).send(response);
+                            }
                         } else {
                             let message = inquiry_withdrawal.error.message.replace("n't"," not")
                             response = await error_response(data,response,"","TRANSAKSI DI TOLAK",message,null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
@@ -570,29 +643,151 @@ const release_withdrawal = async (req, res) => {
                                 nominal = nominal.substring(nominal.length-12, nominal.length)
                                 const data_nasabah = {no_rek:"", no_hp, bpr_id, trx_code:"0500", status:"", tgl_trans, tgl_transmis:moment().format('YYMMDDHHmmss'), rrn}
                                 const nasabah = await connect_axios(bpr[0].gateway,"gateway_bpr/inquiry_account",data_nasabah)
-                                const data_request = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1100", trx_type, keterangan:cek_token[0].keterangan, terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn}
-                                request = await connect_axios(get_atm[0].gateway,"gateway_bpr/withdrawal",data_request)
-                                console.log("request");
-                                console.log(request);
                                 if (request.code !== "000") {
-                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
+                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"14","GAGAL INQUIRY TARIK TUNAI")
                                     await send_log(data,response)
-                                    console.log(response); 
+                                    console.log(response);
                                     res.status(200).send(
                                         response,
                                     );
                                 } else {
+                                    const data_request = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1100", trx_type, keterangan:cek_token[0].keterangan, terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn}
+                                    request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_request)
+                                    console.log("request");
+                                    console.log(request);
+                                    if (request.code !== "000") {
+                                        if (request.code !== "088") {
+                                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
+                                            await send_log(data,response)
+                                            console.log(response);
+                                            let [results, metadata] = await db.sequelize.query(
+                                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                                {
+                                                replacements: [
+                                                    no_hp,
+                                                    bpr_id,
+                                                    nasabah.data.no_rek,
+                                                    nasabah.data.nama,
+                                                    "1100",
+                                                    "Tarik Tunai",
+                                                    cek_token[0].keterangan,
+                                                    "",
+                                                    amount,
+                                                    trans_fee,
+                                                    tgl_trans,
+                                                    "",
+                                                    rrn,
+                                                    request.code,
+                                                    request.message
+                                                ],
+                                                }
+                                            );
+                                            res.status(200).send(
+                                                response,
+                                            );
+                                        } else {
+                                            const data_request = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1100", trx_type:"REV", keterangan:cek_token[0].keterangan, terminal_id, lokasi: get_atm[0].lokasi, acq_id: get_atm[0].bpr_id,token, tgl_trans, rrn}
+                                            request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_request)
+                                            console.log(request);
+                                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.code.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
+                                            await send_log(data,response)
+                                            console.log(response); 
+                                            let [results, metadata] = await db.sequelize.query(
+                                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'R')`,
+                                                {
+                                                replacements: [
+                                                    no_hp,
+                                                    bpr_id,
+                                                    nasabah.data.no_rek,
+                                                    nasabah.data.nama,
+                                                    "1100",
+                                                    "Tarik Tunai",
+                                                    cek_token[0].keterangan,
+                                                    "",
+                                                    amount,
+                                                    trans_fee,
+                                                    tgl_trans,
+                                                    "",
+                                                    rrn,
+                                                    request.code,
+                                                    request.message
+                                                ],
+                                                }
+                                            );
+                                            res.status(200).send(
+                                                response,
+                                            );
+                                        }
+                                    } else {
                                     if (get_atm[0].bpr_id !== bpr_id) {
                                         data_request.keterangan = "acquirer"
                                         console.log(data_request);
                                         request = await connect_axios(get_atm[0].gateway,"gateway_bpr/withdrawal",data_request)
                                         if (request.code !== "000") {
-                                            response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
-                                            await send_log(data,response)
-                                            console.log(response); 
-                                            res.status(200).send(
-                                                response,
-                                            );
+                                            if (request.code !== "088") {
+                                                response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
+                                                await send_log(data,response)
+                                                console.log(response);
+                                                let [results, metadata] = await db.sequelize.query(
+                                                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                                    {
+                                                    replacements: [
+                                                        no_hp,
+                                                        bpr_id,
+                                                        nasabah.data.no_rek,
+                                                        nasabah.data.nama,
+                                                        "1100",
+                                                        "Tarik Tunai",
+                                                        cek_token[0].keterangan,
+                                                        "",
+                                                        amount,
+                                                        trans_fee,
+                                                        tgl_trans,
+                                                        "",
+                                                        rrn,
+                                                        request.code,
+                                                        request.message
+                                                    ],
+                                                    }
+                                                );
+                                                res.status(200).send(
+                                                    response,
+                                                );
+                                            } else {
+                                                const data_request = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1100", trx_type:"REV", keterangan:"acquirer", terminal_id, lokasi: get_atm[0].lokasi, acq_id: get_atm[0].bpr_id,token, tgl_trans, rrn}
+                                                request = await connect_axios(get_atm[0].gateway,"gateway_bpr/withdrawal",data_request)
+                                                const data_request_issuer = {no_hp, bpr_id, no_rek:nasabah.data.no_rek, amount, trans_fee, trx_code:"1100", trx_type:"REV", keterangan:cek_token[0].keterangan, terminal_id, lokasi: get_atm[0].lokasi, acq_id: get_atm[0].bpr_id,token, tgl_trans, rrn}
+                                                request_issuer = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_request_issuer)
+                                                console.log(request);
+                                                response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.code.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
+                                                await send_log(data,response)
+                                                console.log(response); 
+                                                let [results, metadata] = await db.sequelize.query(
+                                                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'R')`,
+                                                    {
+                                                    replacements: [
+                                                        no_hp,
+                                                        bpr_id,
+                                                        nasabah.data.no_rek,
+                                                        nasabah.data.nama,
+                                                        "1100",
+                                                        "Tarik Tunai",
+                                                        cek_token[0].keterangan,
+                                                        "",
+                                                        amount,
+                                                        trans_fee,
+                                                        tgl_trans,
+                                                        "",
+                                                        rrn,
+                                                        request_issuer.code,
+                                                        request_issuer.message
+                                                    ],
+                                                    }
+                                                );
+                                                res.status(200).send(
+                                                    response,
+                                                );
+                                            }
                                         } else {
                                             let requestData = {
                                                 "partner_id": "mtd",
@@ -835,6 +1030,7 @@ const release_withdrawal = async (req, res) => {
                                             );
                                         }
                                     }
+                                    }
                                 }
                             }
                         }
@@ -905,12 +1101,34 @@ const release_withdrawal = async (req, res) => {
                                     let trans_fee = cek_token[0].trans_fee
                                     nominal = nominal.substring(nominal.length-12, nominal.length)
                                     const data_request = {no_hp, bpr_id, no_rek:cek_transaksi[0].no_rek, amount, trans_fee, trx_code:"1100", trx_type:"REV", keterangan:cek_token[0].keterangan, terminal_id, lokasi: get_atm[0].lokasi, acq_id: get_atm[0].bpr_id,token, tgl_trans, rrn}
-                                    request = await connect_axios(get_atm[0].gateway,"gateway_bpr/withdrawal",data_request)
+                                    request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data_request)
                                     console.log(request);
                                     if (request.code !== "000") {
                                         response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.code.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
                                         await send_log(data,response)
                                         console.log(response); 
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                            {
+                                            replacements: [
+                                                no_hp,
+                                                bpr_id,
+                                                nasabah.data.no_rek,
+                                                nasabah.data.nama,
+                                                "1100",
+                                                "Tarik Tunai",
+                                                cek_token[0].keterangan,
+                                                "",
+                                                amount,
+                                                trans_fee,
+                                                tgl_trans,
+                                                "",
+                                                rrn,
+                                                request.code,
+                                                request.message
+                                            ],
+                                            }
+                                        );
                                         res.status(200).send(
                                             response,
                                         );
@@ -922,6 +1140,28 @@ const release_withdrawal = async (req, res) => {
                                                 response = await error_response(data,response,"","TRANSAKSI DI TOLAK",request.code.message,null,null,null,null,null,null,null,null,null,null,null,null,null,"99","INVALID TRANSACTION")
                                                 await send_log(data,response)
                                                 console.log(response); 
+                                                let [results, metadata] = await db.sequelize.query(
+                                                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                                                    {
+                                                    replacements: [
+                                                        no_hp,
+                                                        bpr_id,
+                                                        nasabah.data.no_rek,
+                                                        nasabah.data.nama,
+                                                        "1100",
+                                                        "Tarik Tunai",
+                                                        cek_token[0].keterangan,
+                                                        "",
+                                                        amount,
+                                                        trans_fee,
+                                                        tgl_trans,
+                                                        "",
+                                                        rrn,
+                                                        request.code,
+                                                        request.message
+                                                    ],
+                                                    }
+                                                );
                                                 res.status(200).send(
                                                     response,
                                                 );
@@ -1283,11 +1523,15 @@ const check_status_token = async (req, res) => {
                 data: null,
             });
         } else {
-            let status
+            let status, status_message
             if (transaksi[0].code === "000" && transaksi[0].status_rek == "1") {
-                status = "SUCCESS"
-            } else{
-                status = "FAILED"
+                status_message = "SUCCESS"
+            } else if (transaksi[0].status_rek == "R") {
+                status_message = "REVERSE"
+            } else if (transaksi[0].code == "088" && transaksi[0].status_rek !== "1") {
+                status_message = "TRANSACTION TIME OUT"
+            } else {
+                status_message = "FAILED"
             }
             let response = {
                 no_hp: transaksi[0].no_hp,
@@ -1295,15 +1539,17 @@ const check_status_token = async (req, res) => {
                 bpr_id: transaksi[0].bpr_id,
                 amount: transaksi[0].amount,
                 trans_fee: transaksi[0].admin_fee,
-                trx_code,
-                trx_type,
                 Keterangan: transaksi[0].ket_trans,
+                trx_code: transaksi[0].tcode,
+                trx_type,
                 reff: transaksi[0].reff,
                 tgl_trans: transaksi[0].tgl_trans,
                 tgl_transmis : moment().format('YYMMDDHHmmss'),
                 rrn,
+                status: transaksi[0].status_rek,
+                status_message,
                 code:transaksi[0].code,
-                status
+                message:transaksi[0].message,
             }
             //--berhasil dapat list product update atau insert ke db --//
             console.log("Success");
@@ -1398,6 +1644,12 @@ const check_status_withdrawal = async (req, res) => {
             }
             
         } else {
+            console.log({
+                code: "099",
+                status: "Failed, Request Is not Valid!!!",
+                rrn: null,
+                message: null
+            });
             res.status(200).send({
                   code: "099",
                   status: "Failed, Request Is not Valid!!!",
@@ -1425,7 +1677,6 @@ const reversal_withdrawal = async (req, res) => {
         no_rek,
         amount,
         trans_fee,
-        token,
         trx_code,
         trx_type,
         tgl_trans,
@@ -1456,43 +1707,106 @@ const reversal_withdrawal = async (req, res) => {
                 data: null,
             });
         } else {
-            const keterangan = `Token ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
-            const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
-            const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
-            if (request.code !== "000") {
-                console.log("request");
-                console.log(request);
-                res.status(200).send(request);
-            } else {
-                console.log("request.data");
-                console.log(request.data);
-                let [results2, metadata2] = await db.sequelize.query(
-                    `UPDATE dummy_transaksi SET status_rek = 'R' WHERE no_hp = ? AND bpr_id = ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
-                    {
-                    replacements: [
-                        no_hp,
-                        bpr_id,
-                        no_rek,
-                        "1000",
-                        amount,
-                        rrn
-                    ],
-                    }
-                );
+            let check_transaksi = await db.sequelize.query(
+            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND rrn = ?`,
+            {
+                replacements: [no_rek, no_hp, bpr_id,trx_code,amount,trans_fee,rrn],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+            );
+            if (!check_transaksi.length) {
                 console.log({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
+                    code: "009",
+                    status: "Failed",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
-                    data: request.data,
+                    data: null,
                 });
                 res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
+                    code: "009",
+                    status: "Failed",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
-                    data: request.data,
+                    data: null,
                 });
+            } else {
+                if (check_transaksi[0].status_rek === "1") {
+                    const keterangan = `Token ${amount} ${moment().format('YYYY-MM-DD HH:mm:ss')}`;
+                    const data = {no_hp, bpr_id, no_rek, amount, trans_fee, trx_code, trx_type, keterangan, acq_id:"", acq_id:"", terminal_id:"", token:"", lokasi:"", tgl_trans, tgl_transmis, rrn}
+                    const request = await connect_axios(bpr[0].gateway,"gateway_bpr/withdrawal",data)
+                    if (request.code !== "000") {
+                        console.log("request");
+                        console.log(request);
+                        let [results, metadata] = await db.sequelize.query(
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                            {
+                            replacements: [
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                "",
+                                trx_code,
+                                "Tarik Tunai",
+                                keterangan,
+                                "",
+                                amount,
+                                trans_fee,
+                                tgl_trans,
+                                "",
+                                rrn,
+                                request.code,
+                                request.message,
+                            ],
+                            }
+                        );
+                        res.status(200).send(request);
+                    } else {
+                        console.log("request.data");
+                        console.log(request.data);
+                        let [results2, metadata2] = await db.sequelize.query(
+                            `UPDATE dummy_transaksi SET status_rek = 'R' WHERE no_hp = ? AND bpr_id = ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                            {
+                            replacements: [
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                "1000",
+                                amount,
+                                rrn
+                            ],
+                            }
+                        );
+                        console.log({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
+                    }
+                } else {
+                    console.log({
+                        code: "012",
+                        status: "Failed",
+                        message: "Gagal, Duplicated Transmission!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                    res.status(200).send({
+                        code: "012",
+                        status: "Failed",
+                        message: "Gagal, Duplicated Transmission!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                }
             }
         }
     } catch (error) {

@@ -2,7 +2,7 @@
 // const api_crm = require("../Services/API/api_crm");
 const {
     encryptStringWithRsaPublicKey,
-  } = require("../../utility/encrypt");
+} = require("../../utility/encrypt");
 const axios = require("axios").default;
 var https = require('https');
 const db = require("../../connection");
@@ -18,11 +18,11 @@ const timestampMs = moment().format('YYYYMMDDHHmmss')
 
 // Generate random ref number
 function generateString(length) {
-    const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     // const characters ='0123456789';
     let result = '';
     const charactersLength = characters.length;
-    for ( let i = 0; i < length; i++ ) {
+    for (let i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
 
@@ -41,7 +41,7 @@ const connect_axios = async (url, route, data) => {
         }).then(res => {
             Result = res.data
         }).catch(error => {
-            if (error.code == 'ECONNABORTED'){
+            if (error.code == 'ECONNABORTED') {
                 Result = {
                     code: "088",
                     status: "ECONNABORTED",
@@ -57,7 +57,7 @@ const connect_axios = async (url, route, data) => {
             code: "099",
             status: "Failed",
             message: error.message
-        });      
+        });
     }
 }
 
@@ -74,27 +74,27 @@ async function update_gl_oy_kredit(
     let [res_pokok, meta_pokok] = await db.sequelize.query(
         `UPDATE gl_trans_core SET gl_kredit = gl_kredit + ?, saldo_akhir = saldo_akhir + ? WHERE bpr_id = ? AND tcode = ? AND nosbb = ? AND nmsbb = ?`,
         {
-        replacements: [
-            amount,
-            amount,
-            bpr_id,
-            trx_code,
-            no_rek_pokok,
-            nama_rek_pokok
-        ],
+            replacements: [
+                amount,
+                amount,
+                bpr_id,
+                trx_code,
+                no_rek_pokok,
+                nama_rek_pokok
+            ],
         }
     );
     let [res_fee, meta_fee] = await db.sequelize.query(
         `UPDATE gl_trans_core SET gl_kredit = gl_kredit + ?, saldo_akhir = saldo_akhir + ? WHERE bpr_id = ? AND tcode = ? AND nosbb = ? AND nmsbb = ?`,
         {
-        replacements: [
-            trans_fee,
-            trans_fee,
-            bpr_id,
-            trx_code,
-            no_rek_fee,
-            nama_rek_fee
-        ],
+            replacements: [
+                trans_fee,
+                trans_fee,
+                bpr_id,
+                trx_code,
+                no_rek_fee,
+                nama_rek_fee
+            ],
         }
     );
     let data_trans
@@ -110,20 +110,20 @@ async function update_gl_oy_kredit(
         let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
             `INSERT INTO log_gateway(nosbb,bpr_id,trx_code,trx_type,tgl_trans,ket_trans,data_trans,amount_db,amount_cr,rrn,status,rcode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
             {
-            replacements: [
-                no_rek_pokok,
-                bpr_id,
-                trx_code,
-                detail_trans.trx_type,
-                detail_trans.tgl_trans,
-                detail_trans.keterangan,
-                data_trans,
-                0,
-                amount,
-                detail_trans.rrn,
-                detail_trans.status,
-                detail_trans.tcode
-            ],
+                replacements: [
+                    no_rek_pokok,
+                    bpr_id,
+                    trx_code,
+                    detail_trans.trx_type,
+                    detail_trans.tgl_trans,
+                    detail_trans.keterangan,
+                    data_trans,
+                    0,
+                    amount,
+                    detail_trans.rrn,
+                    detail_trans.status,
+                    detail_trans.tcode
+                ],
             }
         );
     }
@@ -131,20 +131,20 @@ async function update_gl_oy_kredit(
         let [res_log_fee, meta_log_fee] = await db.sequelize.query(
             `INSERT INTO log_gateway(nosbb,bpr_id,trx_code,trx_type,tgl_trans,ket_trans,data_trans,amount_db,amount_cr,rrn,status,rcode) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
             {
-            replacements: [
-                no_rek_fee,
-                bpr_id,
-                trx_code,
-                detail_trans.trx_type,
-                detail_trans.tgl_trans,
-                detail_trans.keterangan,
-                data_trans,
-                0,
-                trans_fee,
-                detail_trans.rrn,
-                detail_trans.status,
-                detail_trans.tcode
-            ],
+                replacements: [
+                    no_rek_fee,
+                    bpr_id,
+                    trx_code,
+                    detail_trans.trx_type,
+                    detail_trans.tgl_trans,
+                    detail_trans.keterangan,
+                    data_trans,
+                    0,
+                    trans_fee,
+                    detail_trans.rrn,
+                    detail_trans.status,
+                    detail_trans.tcode
+                ],
             }
         );
     }
@@ -155,7 +155,7 @@ async function update_gl_oy_kredit(
     }
 }
 
-function split_sbb(data,tcode) {
+function split_sbb(data, tcode) {
     let no_pokok = {}
     let no_fee = {}
     let tagihan = {}
@@ -178,7 +178,7 @@ function split_sbb(data,tcode) {
                 }
             }
         }
-        return {no_pokok,no_fee,tagihan}
+        return { no_pokok, no_fee, tagihan }
     } else {
         if (data[0].jns_gl == "0") {
             no_pokok = data[0]
@@ -186,24 +186,24 @@ function split_sbb(data,tcode) {
         } else if (data[0].jns_gl == "1") {
             no_pokok = data[1]
             no_fee = data[0]
-        }   
-        return {no_pokok,no_fee,tagihan}
+        }
+        return { no_pokok, no_fee, tagihan }
     }
 }
 
-const agent = new https.Agent({  
+const agent = new https.Agent({
     rejectUnauthorized: false
-  });
+});
 
 // API untuk Access Webview
 const webview = async (req, res) => {
-    let {no_rek, no_hp, bpr_id, amount, trx_code, trans_fee, trx_type, tgl_trans, rrn} = req.query;
+    let { no_rek, no_hp, bpr_id, amount, trx_code, trans_fee, trx_type, tgl_trans, rrn } = req.query;
     console.log("REQ QUERY WEBVIEW");
     console.log(req.query);
     try {
         let reference_number = `${rrn}${bpr_id}${no_hp}`
         let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
+            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
             {
                 replacements: [bpr_id],
                 type: db.sequelize.QueryTypes.SELECT,
@@ -232,20 +232,20 @@ const webview = async (req, res) => {
                 data: {
                     "url": `https://mpin.medtransdigital.com/${no_rek}/${no_hp}/${bpr_id}/${amount}/0/${trx_code}/${tgl_trans}/${rrn}`
                 }
-                });
+            });
             res.status(200).send({
-            code: "000",
-            status: "Success",
-            message: "Webview telah di generate",
-            data: {
-                "url": `https://mpin.medtransdigital.com/${no_rek}/${no_hp}/${bpr_id}/${amount}/0/${trx_code}/${tgl_trans}/${rrn}`
-            }
+                code: "000",
+                status: "Success",
+                message: "Webview telah di generate",
+                data: {
+                    "url": `https://mpin.medtransdigital.com/${no_rek}/${no_hp}/${bpr_id}/${amount}/0/${trx_code}/${tgl_trans}/${rrn}`
+                }
             });
         }
     } catch (error) {
-      //--error server--//
-      console.log("erro get product", error);
-      res.status(200).send({
+        //--error server--//
+        console.log("erro get product", error);
+        res.status(200).send({
             code: "099",
             status: "Failed",
             rrn: rrn,
@@ -256,14 +256,14 @@ const webview = async (req, res) => {
 
 //API untuk validasi mpin
 const validate_mpin = async (req, res) => {
-    let {no_rek, no_hp, bpr_id, pin, amount, trans_fee, tgl_trans, trx_code, rrn} = req.body;
+    let { no_rek, no_hp, bpr_id, pin, amount, trans_fee, tgl_trans, trx_code, rrn } = req.body;
     try {
         console.log("REQ BODY MPIN");
         console.log(req.body);
         tgl_trans = moment().format("YYMMDDHHmmss")
 
         let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
+            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
             {
                 replacements: [bpr_id],
                 type: db.sequelize.QueryTypes.SELECT,
@@ -278,8 +278,8 @@ const validate_mpin = async (req, res) => {
                 data: [],
             });
         } else {
-            const data = {no_rek, no_hp, bpr_id, pin, amount, trans_fee, tgl_trans, trx_code, rrn}
-            const request = await connect_axios(bpr[0].gateway,"gateway_bpr/mpin",data)
+            const data = { no_rek, no_hp, bpr_id, pin, amount, trans_fee, tgl_trans, trx_code, rrn }
+            const request = await connect_axios(bpr[0].gateway, "gateway_bpr/mpin", data)
             if (request.code !== "000") {
                 console.log(request);
                 res.status(200).send(request);
@@ -299,10 +299,10 @@ const validate_mpin = async (req, res) => {
                 );
                 if (!metadata) {
                     res.status(200).send({
-                    code: "001",
-                    status: "Failed",
-                    message: "Gagal, Terjadi Kesalahan Membuat Token mPIN!!!",
-                    data: null,
+                        code: "001",
+                        status: "Failed",
+                        message: "Gagal, Terjadi Kesalahan Membuat Token mPIN!!!",
+                        data: null,
                     });
                 } else {
                     console.log({
@@ -324,9 +324,9 @@ const validate_mpin = async (req, res) => {
         }
 
     } catch (error) {
-      //--error server--//
-      console.log("erro get product", error);
-      res.status(200).send({
+        //--error server--//
+        console.log("erro get product", error);
+        res.status(200).send({
             code: "099",
             status: "Failed",
             rrn: rrn,
@@ -355,7 +355,7 @@ const bill_payment = async (req, res) => {
         console.log("REQ BOODY OVERBOOKING");
         console.log(req.body);
         let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
+            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
             {
                 replacements: [bpr_id],
                 type: db.sequelize.QueryTypes.SELECT,
@@ -365,22 +365,22 @@ const bill_payment = async (req, res) => {
             let [results, metadata] = await db.sequelize.query(
                 `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                 {
-                replacements: [
-                    no_hp,
-                    bpr_id,
-                    no_rek,
-                    "",
-                    trx_code,
-                    "PPOB",
-                    "Gagal, Terjadi Kesalahan Pencarian BPR!!!",
-                    "",
-                    amount,
-                    trans_fee,
-                    tgl_trans,
-                    token_mpin,
-                    rrn,
-                    "002"
-                ],
+                    replacements: [
+                        no_hp,
+                        bpr_id,
+                        no_rek,
+                        "",
+                        trx_code,
+                        "PPOB",
+                        "Gagal, Terjadi Kesalahan Pencarian BPR!!!",
+                        "",
+                        amount,
+                        trans_fee,
+                        tgl_trans,
+                        token_mpin,
+                        rrn,
+                        "002"
+                    ],
                 }
             );
             console.log({
@@ -399,9 +399,9 @@ const bill_payment = async (req, res) => {
             });
         } else {
             let check_token_mpin = await db.sequelize.query(
-                `SELECT * FROM token_mpin WHERE token_mpin = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                `SELECT * FROM token_mpin WHERE token_mpin = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ?`,
                 {
-                    replacements: [token_mpin, no_rek, no_hp, bpr_id],
+                    replacements: [token_mpin, no_rek, no_hp, bpr_id, trx_code],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             );
@@ -423,34 +423,29 @@ const bill_payment = async (req, res) => {
                         data: null,
                     });
                 } else if (check_token_mpin[0].status == "0") {
-                    const data = { no_hp, bpr_id, no_rek, product_name, token_mpin, trx_code, trx_type, amount, trans_fee, tgl_trans, tgl_transmis, rrn}
-                    const request = await connect_axios(bpr[0].gateway,"gateway_bpr/ppob",data)
+                    const data = { no_hp, bpr_id, no_rek, product_name, token_mpin, trx_code, trx_type, amount, trans_fee, tgl_trans, tgl_transmis, rrn }
+                    const request = await connect_axios(bpr[0].gateway, "gateway_bpr/ppob", data)
                     if (request.code !== "000") {
                         console.log(request);
-                        let status = 0
-                        if (request.code == "088") {
-                            status = 4
-                        }
                         let [results, metadata] = await db.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, trans_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, trans_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                             {
-                            replacements: [
-                                no_hp,
-                                bpr_id,
-                                no_rek,
-                                "",
-                                trx_code,
-                                "PPOB",
-                                request.message,
-                                "",
-                                amount,
-                                trans_fee,
-                                tgl_trans,
-                                token_mpin,
-                                rrn,
-                                request.code,
-                                status
-                            ],
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    "",
+                                    trx_code,
+                                    "PPOB",
+                                    request.message,
+                                    "",
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    token_mpin,
+                                    rrn,
+                                    request.code,
+                                ],
                             }
                         );
                         res.status(200).send(request);
@@ -458,22 +453,22 @@ const bill_payment = async (req, res) => {
                         let [results, metadata] = await db.sequelize.query(
                             `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                             {
-                            replacements: [
-                                no_hp,
-                                bpr_id,
-                                no_rek,
-                                request.data.nama,
-                                trx_code,
-                                "PPOB",
-                                request.message,
-                                "",
-                                amount,
-                                trans_fee,
-                                tgl_trans,
-                                token_mpin,
-                                rrn,
-                                request.code
-                            ],
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    request.data.nama,
+                                    trx_code,
+                                    "PPOB",
+                                    request.message,
+                                    "",
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    token_mpin,
+                                    rrn,
+                                    request.code
+                                ],
                             }
                         );
                         console.log({
@@ -506,11 +501,11 @@ const bill_payment = async (req, res) => {
         //--error server--//
         console.log("error inquiry", error);
         res.status(200).send({
-        code: "099",
-        status: "error",
-        message: error.message,
-        rrn: rrn,
-        data: null,
+            code: "099",
+            status: "error",
+            message: error.message,
+            rrn: rrn,
+            data: null,
         });
     }
 };
@@ -525,7 +520,7 @@ const check_status_ppob = async (req, res) => {
         trx_type,
         tgl_trans,
         tgl_transmis,
-        rrn} = req.body;
+        rrn } = req.body;
     try {
         console.log("REQ BODY STATUS PPOB");
         console.log(req.body);
@@ -558,15 +553,15 @@ const check_status_ppob = async (req, res) => {
                 },
             });
         } else {
-            let code, status
+            let status, status_message
             if (check_transaksi[0].status_rek == "1") {
-                status = "SUCCESS"
+                status_message = "SUCCESS"
             } else if (check_transaksi[0].status_rek == "R") {
-                status = "REVERSE"
-            } else if (check_transaksi[0].status_rek == "4") {
-                status = "TRANSACTION TIME OUT"
-            } else if (check_transaksi[0].status_rek == "2") {
-                status = "FAILED"
+                status_message = "REVERSE"
+            } else if (check_transaksi[0].code == "088") {
+                status_message = "TRANSACTION TIME OUT"
+            } else {
+                status_message = "FAILED"
             }
             let response = {
                 no_hp: check_transaksi[0].no_hp,
@@ -578,11 +573,13 @@ const check_status_ppob = async (req, res) => {
                 trx_code: check_transaksi[0].tcode,
                 trx_type,
                 reff: check_transaksi[0].reff,
-                code: check_transaksi[0].code,
-                status,
                 tgl_trans: check_transaksi[0].tgl_trans,
-                tgl_transmis : moment().format('YYMMDDHHmmss'),
-                rrn
+                tgl_transmis: moment().format('YYMMDDHHmmss'),
+                rrn,
+                status: check_transaksi[0].status_rek,
+                status_message,
+                code: check_transaksi[0].code,
+                message: check_transaksi[0].message,
             }
             //--berhasil dapat list product update atau insert ke db --//
             console.log("Success");
@@ -599,12 +596,12 @@ const check_status_ppob = async (req, res) => {
                 message: "Success",
                 rrn: rrn,
                 data: response,
-            }); 
+            });
         }
     } catch (error) {
-      //--error server--//
-      console.log("erro get product", error);
-      res.status(200).send({
+        //--error server--//
+        console.log("erro get product", error);
+        res.status(200).send({
             code: "099",
             status: "Failed",
             message: error.message,
@@ -626,7 +623,7 @@ const reversal_ppob = async (req, res) => {
         trx_type,
         tgl_trans,
         tgl_transmis,
-        rrn} = req.body;
+        rrn } = req.body;
     try {
         console.log("REQ BODY REVERSAL PPOB");
         console.log(req.body);
@@ -654,119 +651,138 @@ const reversal_ppob = async (req, res) => {
             });
         } else {
             let check_transaksi = await db.sequelize.query(
-            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND tgl_trans = ?`,
-            {
-                replacements: [no_rek, no_hp, bpr_id,trx_code,amount,trans_fee,tgl_trans],
-                type: db.sequelize.QueryTypes.SELECT,
-            }
+                `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND tgl_trans = ?`,
+                {
+                    replacements: [no_rek, no_hp, bpr_id, trx_code, amount, trans_fee, tgl_trans],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
             );
             if (!check_transaksi.length) {
                 console.log({
                     code: "009",
                     status: "Failed",
-                    message: "Gagal, Terjadi Kesalahan Pencarian Transaksi!!!",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
                     data: null,
                 });
                 res.status(200).send({
                     code: "009",
                     status: "Failed",
-                    message: "Gagal, Terjadi Kesalahan Pencarian Transaksi!!!",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
                     data: null,
                 });
             } else {
-                const data = { no_hp,
-                    no_rek,
-                    bpr_id,
-                    product_name,
-                    amount,
-                    trans_fee,
-                    token_mpin:"",
-                    trx_code,
-                    trx_type,
-                    tgl_trans,
-                    tgl_transmis,
-                    rrn}
-                const request = await connect_axios(bpr[0].gateway,"gateway_bpr/ppob",data)
-                if (request.code !== "000") {
-                    console.log(request);
-                    res.status(200).send(request);
-                } else {
-                    let [results, metadata] = await db.sequelize.query(
-                        `UPDATE dummy_transaksi SET status_rek = ? WHERE token = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND reff = ? AND tgl_trans = ?`,
-                        {
-                        replacements: [
-                            "R",
-                            check_transaksi[0].token,
-                            check_transaksi[0].no_rek,
-                            check_transaksi[0].no_hp,
-                            check_transaksi[0].bpr_id,
-                            check_transaksi[0].reff,
-                            check_transaksi[0].tgl_trans
-                        ],
-                        }
-                    );
-                    if (!metadata) {
-                        console.log({
-                            code: "001",
-                            status: "Failed",
-                            message: "Gagal, Terjadi Kesalahan Update Transaksi!!!",
-                            rrn: rrn,
-                            data: null,
+                if (check_transaksi[0].status_rek === "1") {
+                    const data = {
+                        no_hp,
+                        no_rek,
+                        bpr_id,
+                        product_name,
+                        amount,
+                        trans_fee,
+                        token_mpin: "",
+                        trx_code,
+                        trx_type,
+                        tgl_trans,
+                        tgl_transmis,
+                        rrn
+                    }
+                    const request = await connect_axios(bpr[0].gateway, "gateway_bpr/ppob", data)
+                    if (request.code !== "000") {
+                        console.log(request);
+                        res.status(200).send(request);
+                    } else {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE dummy_transaksi SET status_rek = ? WHERE token = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND reff = ? AND tgl_trans = ?`,
+                            {
+                                replacements: [
+                                    "R",
+                                    check_transaksi[0].token,
+                                    check_transaksi[0].no_rek,
+                                    check_transaksi[0].no_hp,
+                                    check_transaksi[0].bpr_id,
+                                    check_transaksi[0].reff,
+                                    check_transaksi[0].tgl_trans
+                                ],
+                            }
+                        );
+                        if (!metadata) {
+                            console.log({
+                                code: "001",
+                                status: "Failed",
+                                message: "Gagal, Terjadi Kesalahan Update Transaksi!!!",
+                                rrn: rrn,
+                                data: null,
                             });
-                        res.status(200).send({
-                        code: "001",
+                            res.status(200).send({
+                                code: "001",
+                                status: "Failed",
+                                message: "Gagal, Terjadi Kesalahan Update Transaksi!!!",
+                                rrn: rrn,
+                                data: null,
+                            });
+                        } else {
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: request.data,
+                            });
+                            let response = {
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                nama_rek: check_transaksi[0].nama_rek,
+                                product_name,
+                                amount,
+                                trans_fee,
+                                trx_code,
+                                trx_type,
+                                reff: check_transaksi[0].reff,
+                                tgl_trans: check_transaksi[0].tgl_trans,
+                                tgl_transmis: moment().format('YYMMDDHHmmss'),
+                                rrn
+                            }
+                            //--berhasil dapat list product update atau insert ke db --//
+                            console.log("Success");
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: request.data,
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                        }
+                    }
+                } else {
+                    console.log({
+                        code: "012",
                         status: "Failed",
-                        message: "Gagal, Terjadi Kesalahan Update Transaksi!!!",
+                        message: "Gagal, Duplicated Transmission!!!",
                         rrn: rrn,
                         data: null,
-                        });
-                    } else {
-                        console.log({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            data: request.data,
-                        });
-                        let response = {
-                            no_hp,
-                            bpr_id,
-                            no_rek,
-                            nama_rek: check_transaksi[0].nama_rek,
-                            product_name,
-                            amount,
-                            trans_fee,
-                            trx_code,
-                            trx_type,
-                            reff: check_transaksi[0].reff,
-                            tgl_trans: check_transaksi[0].tgl_trans,
-                            tgl_transmis : moment().format('YYMMDDHHmmss'),
-                            rrn
-                        }
-                        //--berhasil dapat list product update atau insert ke db --//
-                        console.log("Success");
-                        console.log({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            data: request.data,
-                        });
-                        res.status(200).send({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: request.data,
-                        });
-                    }
+                    });
+                    res.status(200).send({
+                        code: "012",
+                        status: "Failed",
+                        message: "Gagal, Duplicated Transmission!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
                 }
             }
         }
     } catch (error) {
-      //--error server--//
-      console.log("erro get product", error);
-      res.status(200).send({
+        //--error server--//
+        console.log("erro get product", error);
+        res.status(200).send({
             code: "099",
             status: "Failed",
             rrn: rrn,

@@ -30,18 +30,17 @@ const make_mpin = () => {
 
 // Login Admin
 const login = async (req, res) => {
-    let {user_id, bpr_id, password} = req.body;
+    let {user_id, password} = req.body;
     try {
         let Password = encryptStringWithRsaPublicKey(
             password,
             "./utility/privateKey.pem"
         );
         let response = await db.sequelize.query(
-            `SELECT user_id, bpr_id, user_fullname, grup, level, akses FROM kd_user WHERE user_id = ? AND bpr_id = ? AND password = ? AND status != '6'`,
+            `SELECT * FROM cms_acct_ebpr WHERE user_id = ? AND password = ? AND status != '6'`,
             {
                 replacements: [
                     user_id,
-                    bpr_id,
                     Password
                 ],
                 type: db.sequelize.QueryTypes.SELECT,

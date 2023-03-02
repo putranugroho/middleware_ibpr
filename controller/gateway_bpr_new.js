@@ -506,6 +506,7 @@ const inquiry_account = async (req, res) => {
                 trx_code,
                 trx_type,
                 tgl_trans,
+                tgl_transmis:moment().format('YYMMDDHHmmss'),
                 rrn,
             }
             const request = await connect_axios(url,"Inquiry",data_core)
@@ -701,7 +702,7 @@ const transfer = async (req, res) => {
                                     data: {
                                         gl_rek_db_1: no_rek,
                                         gl_jns_db_1: "2",
-                                        gl_amount_db_1: trans_fee,
+                                        gl_amount_db_1: amount,
                                         gl_rek_db_2: no_rek,
                                         gl_jns_db_2: "2",
                                         gl_amount_db_2: trans_fee,

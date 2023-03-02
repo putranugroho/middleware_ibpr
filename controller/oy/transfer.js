@@ -135,87 +135,252 @@ const transfer_db_cr = async (req, res) => {
         rrn} = req.body;
     try {
         let kode_bpr, keterangan = ""
-        if (trx_code == "2100"){
-            console.log("REQ BODY TRANSFER OUT");
-            console.log(req.body);
-            kode_bpr = bpr_id
-            keterangan = "TRANSFER OUT"
-        } else if (trx_code == "2200") {
+        if (trx_code == "2200") {
             console.log("REQ BODY TRANSFER IN");
             console.log(req.body);
             kode_bpr = bank_tujuan
             token_mpin = ""
             keterangan = "TRANSFER IN"
-        } else if (trx_code == "2300") {
-            console.log("REQ BODY PINDAH BUKU");
-            console.log(req.body);
-            kode_bpr = bpr_id
-            keterangan = "TRANSFER PINDAH BUKU"
-        }
-        let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
-            {
-                replacements: [kode_bpr],
-                type: db.sequelize.QueryTypes.SELECT,
-            }
-        )
-        if (!bpr.length) {
-            res.status(200).send({
-                code: "002",
-                status: "Failed",
-                message: "Gagal, Inquiry BPR Tidak Ditemukan",
-                rrn: rrn,
-                data: [],
-            });
-        } else {
-            const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, token_mpin, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
-            const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
-            if (request.code !== "000") {
-                console.log("failed middleware");
-                console.log(request);
-                res.status(200).send(request);
+            let bpr = await db.sequelize.query(
+                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
+                {
+                    replacements: [kode_bpr],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!bpr.length) {
+                res.status(200).send({
+                    code: "002",
+                    status: "Failed",
+                    message: "Gagal, Inquiry BPR Tidak Ditemukan",
+                    rrn: rrn,
+                    data: [],
+                });
             } else {
-                console.log("request.data transfer");
-                console.log(request);
-                let [results, metadata] = await db.sequelize.query(
-                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, token_mpin, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
+                if (request.code !== "000") {
+                    console.log("failed middleware");
+                    // let status = 0
+                    // if (request.code == "088") {
+                    //     status = 4
+                    // }
+                    // let [results, metadata] = await db.sequelize.query(
+                    //     `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                    //     {
+                    //     replacements: [
+                    //         no_hp,
+                    //         bpr_id,
+                    //         no_rek,
+                    //         request.data.nama,
+                    //         bank_tujuan,
+                    //         rek_tujuan,
+                    //         nama_tujuan,
+                    //         trx_code,
+                    //         keterangan,
+                    //         request.message,
+                    //         "",
+                    //         amount,
+                    //         trans_fee,
+                    //         tgl_trans,
+                    //         token_mpin,
+                    //         rrn,
+                    //         request.code
+                    //     ],
+                    //     }
+                    // );
+                    console.log(request);
+                    res.status(200).send(request);
+                } else {
+                    console.log("request.data transfer");
+                    console.log(request);
+                    let [results, metadata] = await db.sequelize.query(
+                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                        {
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            request.data.nama,
+                            bank_tujuan,
+                            rek_tujuan,
+                            nama_tujuan,
+                            trx_code,
+                            keterangan,
+                            request.message,
+                            "",
+                            amount,
+                            trans_fee,
+                            tgl_trans,
+                            token_mpin,
+                            rrn,
+                            request.code
+                        ],
+                        }
+                    );
+                    console.log({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: request.data,
+                    });
+                    console.log("MDW Transfer Out Timeout");
+                    // res.status(200).send({
+                    //     code: "000",
+                    //     status: "ok",
+                    //     message: "Success",
+                    //     rrn: rrn,
+                    //     data: request.data,
+                    // });
+                }
+            }
+        } else {
+            if (trx_code == "2100"){
+                console.log("REQ BODY TRANSFER OUT");
+                console.log(req.body);
+                kode_bpr = bpr_id
+                keterangan = "TRANSFER OUT"
+            } else if (trx_code == "2300") {
+                console.log("REQ BODY PINDAH BUKU");
+                console.log(req.body);
+                kode_bpr = bpr_id
+                keterangan = "TRANSFER PINDAH BUKU"
+            }
+            let bpr = await db.sequelize.query(
+                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
+                {
+                    replacements: [kode_bpr],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!bpr.length) {
+                res.status(200).send({
+                    code: "002",
+                    status: "Failed",
+                    message: "Gagal, Inquiry BPR Tidak Ditemukan",
+                    rrn: rrn,
+                    data: [],
+                });
+            } else {
+                let check_token_mpin = await db.sequelize.query(
+                    `SELECT * FROM token_mpin WHERE token_mpin = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ?`,
                     {
-                    replacements: [
-                        no_hp,
-                        bpr_id,
-                        no_rek,
-                        request.data.nama,
-                        bank_tujuan,
-                        rek_tujuan,
-                        nama_tujuan,
-                        trx_code,
-                        keterangan,
-                        request.message,
-                        "",
-                        amount,
-                        trans_fee,
-                        tgl_trans,
-                        token_mpin,
-                        rrn,
-                        request.code
-                    ],
+                        replacements: [token_mpin, no_rek, no_hp, bpr_id, trx_code],
+                        type: db.sequelize.QueryTypes.SELECT,
                     }
                 );
-                // console.log("MDW Transfer Out Timeout");
-                console.log({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: request.data,
-                });
-                res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: request.data,
-                });
+                if (!check_token_mpin.length) {
+                    console.log({
+                        code: "009",
+                        status: "ok",
+                        message: "Gagal, MPIN Belum Tervalidasi!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                    res.status(200).send({
+                        code: "009",
+                        status: "ok",
+                        message: "Gagal, MPIN Belum Tervalidasi!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                } else {
+                    if (check_token_mpin[0].status == "1") {
+                        console.log({
+                            code: "009",
+                            status: "ok",
+                            message: "Gagal, Token Validasi MPIN Sudah Digunakan!!!",
+                            rrn: rrn,
+                            data: null,
+                        });
+                        res.status(200).send({
+                            code: "009",
+                            status: "ok",
+                            message: "Gagal, Token Validasi MPIN Sudah Digunakan!!!",
+                            rrn: rrn,
+                            data: null,
+                        });
+                    } else if (check_token_mpin[0].status == "0") {
+                        const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, token_mpin, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                        const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
+                        if (request.code !== "000") {
+                            console.log("failed middleware");
+                            // let status = 0
+                            // if (request.code == "088") {
+                            //     status = 4
+                            // }
+                            // let [results, metadata] = await db.sequelize.query(
+                            //     `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                            //     {
+                            //     replacements: [
+                            //         no_hp,
+                            //         bpr_id,
+                            //         no_rek,
+                            //         request.data.nama,
+                            //         bank_tujuan,
+                            //         rek_tujuan,
+                            //         nama_tujuan,
+                            //         trx_code,
+                            //         keterangan,
+                            //         request.message,
+                            //         "",
+                            //         amount,
+                            //         trans_fee,
+                            //         tgl_trans,
+                            //         token_mpin,
+                            //         rrn,
+                            //         request.code
+                            //     ],
+                            //     }
+                            // );
+                            console.log(request);
+                            res.status(200).send(request);
+                        } else {
+                            console.log("request.data transfer");
+                            console.log(request);
+                            let [results, metadata] = await db.sequelize.query(
+                                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                                {
+                                replacements: [
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    request.data.nama,
+                                    bank_tujuan,
+                                    rek_tujuan,
+                                    nama_tujuan,
+                                    trx_code,
+                                    keterangan,
+                                    request.message,
+                                    "",
+                                    amount,
+                                    trans_fee,
+                                    tgl_trans,
+                                    token_mpin,
+                                    rrn,
+                                    request.code
+                                ],
+                                }
+                            );
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                            console.log("MDW Transfer Out Timeout");
+                            // res.status(200).send({
+                            //     code: "000",
+                            //     status: "ok",
+                            //     message: "Success",
+                            //     rrn: rrn,
+                            //     data: request.data,
+                            // });
+                        }
+                    }
+                }
             }
         }
     } catch (error) {
@@ -300,18 +465,18 @@ const reversal_trf = async (req, res) => {
     try {
         let kode_bpr, keterangan = ""
         if (trx_code == "2100"){
-            console.log("REQ BODY TRANSFER OUT");
+            console.log("REQ BODY REV TRANSFER OUT");
             console.log(req.body);
             kode_bpr = bpr_id
             keterangan = "TRANSFER OUT"
         } else if (trx_code == "2200") {
-            console.log("REQ BODY TRANSFER IN");
+            console.log("REQ BODY REV TRANSFER IN");
             console.log(req.body);
             kode_bpr = bank_tujuan
             token_mpin = ""
             keterangan = "TRANSFER IN"
         } else if (trx_code == "2300") {
-            console.log("REQ BODY PINDAH BUKU");
+            console.log("REQ BODY REV PINDAH BUKU");
             console.log(req.body);
             kode_bpr = bpr_id
             keterangan = "TRANSFER PINDAH BUKU"
@@ -332,26 +497,67 @@ const reversal_trf = async (req, res) => {
                 data: [],
             });
         } else {
-            const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, token_mpin:"", amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
-            const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
-            if (request.code !== "000") {
-                console.log(request);
-                res.status(200).send(request);
-            } else {
+            let check_transaksi = await db.sequelize.query(
+            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND rrn = ?`,
+            {
+                replacements: [no_rek, no_hp, bpr_id,trx_code,amount,trans_fee,rrn],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+            );
+            if (!check_transaksi.length) {
                 console.log({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
+                    code: "009",
+                    status: "Failed",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
-                    data: request.data,
+                    data: null,
                 });
                 res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
+                    code: "009",
+                    status: "Failed",
+                    message: "Gagal, Original Not Found!!!",
                     rrn: rrn,
-                    data: request.data,
+                    data: null,
                 });
+            } else {
+                if (check_transaksi[0].status_rek === "1") {
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, token_mpin:"", amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                    const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
+                    if (request.code !== "000") {
+                        console.log(request);
+                        res.status(200).send(request);
+                    } else {
+                        console.log({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
+                    }
+                } else {
+                    console.log({
+                        code: "012",
+                        status: "Failed",
+                        message: "Gagal, Duplicated Transmission!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                    res.status(200).send({
+                        code: "012",
+                        status: "Failed",
+                        message: "Gagal, Duplicated Transmission!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                }
             }
         }
     } catch (error) {

@@ -124,6 +124,187 @@ const get_gl = async (req, res) => {
 
 // API untuk Inquiry transaksi bpr
 const get_trans = async (req, res) => {
+    let {bpr_id, nosbb, status, fr, to, page} = req.query;
+    try {
+        let bpr = await db.sequelize.query(
+            `SELECT * FROM kd_bpr WHERE bpr_id = ?` ,
+            {
+                replacements: [bpr_id],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+        )
+        if (!bpr.length) {
+            res.status(200).send({
+                code: "002",
+                status: "Failed",
+                message: "Gagal, Inquiry BPR",
+                data: null,
+            });
+        } else {
+            page = (parseInt(page)-1)*10
+            if (nosbb == "all" || status == "all") {
+                if (nosbb == "all" && status != "all") {
+                    let request = await db.sequelize.query(
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC LIMIT 10 OFFSET ?` ,
+                        {
+                            replacements: [bpr_id, status, fr, to, page],
+                            type: db.sequelize.QueryTypes.SELECT,
+                        }
+                    )
+                    if (!request.length) {
+                        res.status(200).send({
+                            code: "009",
+                            status: "Failed",
+                            bpr: bpr[0].nama_bpr,
+                            rek: "All",
+                            message: "Inquiry History Transaction Tidak Ada",
+                            data: [],
+                        });
+                    } else {
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            bpr: bpr[0].nama_bpr,
+                            total: request[0].numrows,
+                            rek: "All",
+                            data: request,
+                        });
+                    }
+                } else if (nosbb != "all" && status == "all") {
+                    let rek = await db.sequelize.query(
+                        `SELECT * FROM master_kd_acct WHERE no_rek = ?` ,
+                        {
+                            replacements: [nosbb],
+                            type: db.sequelize.QueryTypes.SELECT,
+                        }
+                    )
+                    if (!rek.length) {
+                        res.status(200).send({
+                            code: "009",
+                            status: "Failed",
+                            bpr: bpr[0].nama_bpr,
+                            message: "Gagal, Nama Rekening Tidak Ditemukan",
+                            data: [],
+                        });
+                    } else {
+                        let request = await db.sequelize.query(
+                            `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC LIMIT 10 OFFSET ?` ,
+                            {
+                                replacements: [bpr_id, nosbb, fr, to, page],
+                                type: db.sequelize.QueryTypes.SELECT,
+                            }
+                        )
+                        if (!request.length) {
+                            res.status(200).send({
+                                code: "009",
+                                status: "Failed",
+                                bpr: bpr[0].nama_bpr,
+                                rek: `${rek[0].no_rek} ${rek[0].keterangan}`,
+                                message: "Inquiry History Transaction Tidak Ada",
+                                data: [],
+                            });
+                        } else {
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                bpr: bpr[0].nama_bpr,
+                                total: request[0].numrows,
+                                rek: `${rek[0].no_rek} ${rek[0].keterangan}`,
+                                data: request,
+                            });
+                        }
+                    }
+                } else if (nosbb == "all" && status == "all") {
+                    let request = await db.sequelize.query(
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC LIMIT 10 OFFSET ?` ,
+                        {
+                            replacements: [bpr_id, fr, to, page],
+                            type: db.sequelize.QueryTypes.SELECT,
+                        }
+                    )
+                    if (!request.length) {
+                        res.status(200).send({
+                            code: "009",
+                            status: "Failed",
+                            bpr: bpr[0].nama_bpr,
+                            rek: "All",
+                            message: "Inquiry History Transaction Tidak Ada",
+                            data: [],
+                        });
+                    } else {
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            bpr: bpr[0].nama_bpr,
+                            total: request[0].numrows,
+                            rek: "All",
+                            data: request,
+                        });
+                    }
+                }
+            } else {
+                let rek = await db.sequelize.query(
+                    `SELECT * FROM master_kd_acct WHERE no_rek = ?` ,
+                    {
+                        replacements: [nosbb],
+                        type: db.sequelize.QueryTypes.SELECT,
+                    }
+                )
+                if (!rek.length) {
+                    res.status(200).send({
+                        code: "009",
+                        status: "Failed",
+                        bpr: bpr[0].nama_bpr,
+                        message: "Gagal, Nama Rekening Tidak Ditemukan",
+                        data: [],
+                    });
+                } else {
+                    let request = await db.sequelize.query(
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC LIMIT 10 OFFSET ?` ,
+                        {
+                            replacements: [bpr_id, nosbb, status, fr, to, page],
+                            type: db.sequelize.QueryTypes.SELECT,
+                        }
+                    )
+                    if (!request.length) {
+                        res.status(200).send({
+                            code: "009",
+                            status: "Failed",
+                            bpr: bpr[0].nama_bpr,
+                            rek: `${rek[0].no_rek} ${rek[0].keterangan}`,
+                            message: "Inquiry History Transaction Tidak Ada",
+                            data: [],
+                        });
+                    } else {
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            bpr: bpr[0].nama_bpr,
+                            total: request[0].numrows,
+                            rek: `${rek[0].no_rek} ${rek[0].keterangan}`,
+                            data: request,
+                        });
+                    }
+                }
+            }
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+        res.status(200).send({
+            code: "099",
+            status: "Failed",
+            message: error.message
+        });
+    }
+};
+
+// API untuk Inquiry transaksi bpr
+const all_trans = async (req, res) => {
     let {bpr_id, nosbb, status, fr, to} = req.query;
     try {
         let bpr = await db.sequelize.query(
@@ -144,7 +325,7 @@ const get_trans = async (req, res) => {
             if (nosbb == "all" || status == "all") {
                 if (nosbb == "all" && status != "all") {
                     let request = await db.sequelize.query(
-                        `SELECT * FROM log_gateway WHERE bpr_id = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
                         {
                             replacements: [bpr_id, status, fr, to],
                             type: db.sequelize.QueryTypes.SELECT,
@@ -187,7 +368,7 @@ const get_trans = async (req, res) => {
                         });
                     } else {
                         let request = await db.sequelize.query(
-                            `SELECT * FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
+                            `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
                             {
                                 replacements: [bpr_id, nosbb, fr, to],
                                 type: db.sequelize.QueryTypes.SELECT,
@@ -215,7 +396,7 @@ const get_trans = async (req, res) => {
                     }
                 } else if (nosbb == "all" && status == "all") {
                     let request = await db.sequelize.query(
-                        `SELECT * FROM log_gateway WHERE bpr_id = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
                         {
                             replacements: [bpr_id, fr, to],
                             type: db.sequelize.QueryTypes.SELECT,
@@ -259,7 +440,7 @@ const get_trans = async (req, res) => {
                     });
                 } else {
                     let request = await db.sequelize.query(
-                        `SELECT * FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
+                        `SELECT *, count(*) over() as numrows FROM log_gateway WHERE bpr_id = ? AND nosbb = ? AND status = ? AND tgl_trans BETWEEN ? AND ? order by tgl_trans DESC` ,
                         {
                             replacements: [bpr_id, nosbb, status, fr, to],
                             type: db.sequelize.QueryTypes.SELECT,
@@ -440,5 +621,6 @@ module.exports = {
     list_bpr,
     get_gl,
     get_trans,
+    all_trans,
     get_konsol
 }
