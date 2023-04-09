@@ -6,6 +6,8 @@ const {
   } = require("../utility/encrypt");
 const db = require("../connection");
 const moment = require("moment");
+const jwt = require('jsonwebtoken');
+const { timeStamp } = require('console');
 moment.locale("id");
 
 const make_uniqueid = () => {
@@ -26,6 +28,63 @@ const make_mpin = () => {
     mpin += possible.charAt(Math.floor(Math.random() * possible.length));
   
     return mpin;
+}
+
+// Generate random ref number
+function generateString(length) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    // const characters ='0123456789';
+    let result = '';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
+}
+
+const token_access = async (req,res) => {
+    const id = req.body.id
+    const key1 = req.body.timestamp.substring(2,4)
+    const key2 = req.body.timestamp.substring(4,6)
+    const key3 = req.body.timestamp.substring(10,12)
+    // const key4 = process.env.BPR_ID.substring(4,6)
+    const key4 = "0000"
+    const combKey = parseInt(key1) + parseInt(key2) + parseInt(key3) + parseInt(key4)
+    const token = require('crypto').randomBytes(combKey).toString('hex')
+    console.log(token);
+    const accessToken = jwt.sign(id,token)
+    let [results, metadata] = await db.sequelize.query(
+        `UPDATE token_access SET token_access = ? WHERE id = ?`,
+        {
+            replacements: [
+                token,
+                id,
+            ],
+        }
+    );
+    if (metadata.rowCount == 0) {
+        res.status(200).send({
+            code: "009",
+            status: "Failed",
+            message: "Gagal, ID yang dimasukan Salah",
+            data: null,
+        });
+    } else {
+        res.status(200).send({
+            code: "000",
+            status: "Success",
+            message: "Berhasil Membuat token",
+            data: { 
+                id: id,
+                accessToken: accessToken
+            },
+        });
+    }
+}
+
+const masuk = async (req,res) => {
+    res.send("Masuk");
 }
 
 // Login Admin
@@ -408,7 +467,153 @@ const list_bpr = async (req, res) => {
     }
 };
 
+// API untuk Mencari ID ATM
+const get_atm = async (req, res) => {
+    let {terminal_id, bpr_id} = req.body;
+    try {
+        let response = await db.sequelize.query(
+            `SELECT * FROM kd_bpr WHERE bpr_id = ?`,
+            {
+                replacements: [bpr_id],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+        );
+        if (!response.length) {
+            res.status(200).send({
+                code: "002",
+                status: "Failed",
+                message: "Gagal Mencari List BPR",
+                data: null,
+            });
+        } else {
+            let get_atm = await db.sequelize.query(
+                `SELECT atm.bpr_id, nama_bpr, atm_id, nama_atm, lokasi FROM kd_atm AS atm INNER JOIN kd_bpr AS bpr ON atm.bpr_id = bpr.bpr_id WHERE atm_id LIKE ? AND atm.bpr_id = ? AND bpr.status ='1'`,
+                {
+                    replacements: [`%${terminal_id}`, bpr_id],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            );
+            if (!get_atm.length) {
+                res.status(200).send({
+                    code: "002",
+                    status: "Failed",
+                    message: "Gagal Mencari ATM",
+                    data: null,
+                });
+            } else {
+                res.status(200).send({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    data: get_atm[0],
+                });
+            }
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
+// API untuk Mencari KD Account
+const get_kd_acct = async (req, res) => {
+    try {
+        let response = await db.sequelize.query(
+            `SELECT * FROM master_kd_acct`,
+            {
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+        );
+        if (!response.length) {
+            res.status(200).send({
+                code: "002",
+                status: "Failed",
+                message: "Gagal Mencari KD Account",
+                data: null,
+            });
+        } else {
+            res.status(200).send({
+                code: "000",
+                status: "ok",
+                message: "Success",
+                data: response,
+            });
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
+// API untuk Mengupdate KD Account
+const update_kd_acct = async (req, res) => {
+    let {keterangan, no_rek, kd_acct} = req.body;
+    try {
+        let [results, metadata] = await db.sequelize.query(
+            `UPDATE master_kd_acct SET keterangan = ?, no_rek = ? WHERE kd_acct = ?`,
+            {
+                replacements: [keterangan, no_rek, kd_acct],
+            }
+        );
+        if (!metadata) {
+            res.status(200).send({
+                code: "001",
+                status: "Failed",
+                message: "Gagal, Terjadi Kesalahan Update Master KD Account!!!",
+                data: null,
+            });
+        } else {
+            res.status(200).send({
+                code: "000",
+                status: "ok",
+                message: "Success",
+                data: null,
+            });
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
+// API untuk Menambah KD Account
+const insert_kd_acct = async (req, res) => {
+    let {keterangan, no_rek, kd_acct} = req.body;
+    try {
+        let [results, metadata] = await db.sequelize.query(
+            `INSERT INTO master_kd_acct (keterangan, no_rek, kd_acct, gl_jns) VALUES (?,?,?,2)`,
+            {
+                replacements: [keterangan, no_rek, kd_acct],
+            }
+        );
+        if (!metadata) {
+            res.status(200).send({
+                code: "001",
+                status: "Failed",
+                message: "Gagal, Terjadi Kesalahan Update Master KD Account!!!",
+                data: null,
+            });
+        } else {
+            res.status(200).send({
+                code: "000",
+                status: "ok",
+                message: "Success",
+                data: null,
+            });
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
 module.exports = {
+    token_access,
+    masuk,
     login,
     encrypt,
     register_admin,
@@ -418,5 +623,9 @@ module.exports = {
     print_mailer,
     delete_mailer,
     get_product,
-    list_bpr
+    list_bpr,
+    get_atm,
+    get_kd_acct,
+    update_kd_acct,
+    insert_kd_acct,
 };

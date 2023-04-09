@@ -38,7 +38,6 @@ const connect_axios = async (url, route, data) => {
         });      
     }
 }
-  
 
 // API untuk Inquiry bpr
 const list_bpr = async (req, res) => {
@@ -617,10 +616,95 @@ const get_konsol = async (req, res) => {
     }
 };
 
+// API untuk Mengupdate Status ATM
+const release_status = async (req, res) => {
+    let {terminalid, waktu, lokasi, status} = req.body;
+    console.log("Request Release Status");
+    console.log(req.body);
+    try {
+        let atm = await db.sequelize.query(
+            `SELECT * FROM kd_atm WHERE atm_id LIKE ?` ,
+            {
+                replacements: [`%${terminalid}`],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+        )
+        if (!atm.length) {
+            res.status(200).send({
+                rcode: "99",
+                status: "Failed",
+                message: "Gagal, Inquiry ATM",
+            });
+        } else {
+            let [results, metadata] = await db.sequelize.query(
+                `UPDATE kd_atm SET status = ? WHERE atm_id LIKE ?`,
+                {
+                    replacements: [status, `%${terminalid}`],
+                }
+            );
+            if (!metadata) {
+                res.status(200).send({
+                    rcode: "99",
+                    status: "Failed",
+                    message: "Gagal, Terjadi Kesalahan Update Status ATM!!!",
+                });
+            } else {
+                res.status(200).send({
+                    rcode: "00",
+                    command: atm[0].command,
+                    message: "Tidak ada command",
+                });
+            }
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
+    }
+};
+
+// API untuk Inquiry bpr
+const list_atm = async (req, res) => {
+    // let {no_hp, no_rek, bpr_id, tgl_trans, tgl_transmis, rrn} = req.body;
+    try {
+        let request = await db.sequelize.query(
+            `SELECT kb.bpr_id, nama_bpr, alamat_bpr, atm_id, nama_atm, lokasi, kota, ka.status FROM kd_atm AS ka INNER JOIN kd_bpr AS kb ON ka.bpr_id = kb.bpr_id ` ,
+            {
+                type: db.sequelize.QueryTypes.SELECT,
+            }
+        )
+        if (!request.length) {
+            res.status(200).send({
+                code: "002",
+                status: "Failed",
+                message: "Gagal Inquiry BPR",
+                data: [],
+            });
+        } else {
+            res.status(200).send({
+                code: "000",
+                status: "ok",
+                message: "Success",
+                data: request,
+            });
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+        res.status(200).send({
+            code: "099",
+            status: "Failed",
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     list_bpr,
     get_gl,
     get_trans,
     all_trans,
-    get_konsol
+    get_konsol,
+    list_atm,
+    release_status
 }

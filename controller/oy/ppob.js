@@ -428,7 +428,7 @@ const bill_payment = async (req, res) => {
                     if (request.code !== "000") {
                         console.log(request);
                         let [results, metadata] = await db.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, trans_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                             {
                                 replacements: [
                                     no_hp,
@@ -437,7 +437,7 @@ const bill_payment = async (req, res) => {
                                     "",
                                     trx_code,
                                     "PPOB",
-                                    request.message,
+                                    product_name,
                                     "",
                                     amount,
                                     trans_fee,
@@ -445,13 +445,18 @@ const bill_payment = async (req, res) => {
                                     token_mpin,
                                     rrn,
                                     request.code,
+                                    request.message,
                                 ],
                             }
                         );
-                        res.status(200).send(request);
+                        // if (bpr_id === "600001") {
+                        //     console.log("MDW PPOB TIMEOUT");
+                        // } else {
+                            res.status(200).send(request);
+                        // }
                     } else {
                         let [results, metadata] = await db.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                             {
                                 replacements: [
                                     no_hp,
@@ -460,31 +465,36 @@ const bill_payment = async (req, res) => {
                                     request.data.nama,
                                     trx_code,
                                     "PPOB",
-                                    request.message,
-                                    "",
+                                    product_name,
+                                    request.data.noreff,
                                     amount,
                                     trans_fee,
                                     tgl_trans,
                                     token_mpin,
                                     rrn,
-                                    request.code
+                                    request.code,
+                                    request.message
                                 ],
                             }
                         );
-                        console.log({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: request.data,
-                        });
-                        res.status(200).send({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: request.data,
-                        });
+                        // if (bpr_id !== "600001") {
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                            })
+                        // } else {
+                        //     console.log("MDW PPOB TIMEOUT");
+                        // }
                     }
                 } else {
                     res.status(200).send({
@@ -673,7 +683,7 @@ const reversal_ppob = async (req, res) => {
                     data: null,
                 });
             } else {
-                if (check_transaksi[0].status_rek === "1") {
+                if (check_transaksi[0].status_rek !== "R") {
                     const data = {
                         no_hp,
                         no_rek,
@@ -690,6 +700,7 @@ const reversal_ppob = async (req, res) => {
                     }
                     const request = await connect_axios(bpr[0].gateway, "gateway_bpr/ppob", data)
                     if (request.code !== "000") {
+                        console.log("failed");
                         console.log(request);
                         res.status(200).send(request);
                     } else {

@@ -1,5 +1,8 @@
 const express = require("express");
-const { login,
+const { 
+    token_access,
+    masuk,
+    login,
     encrypt,
     register_admin,
     block_acct,
@@ -8,12 +11,17 @@ const { login,
     print_mailer,
     delete_mailer,
     list_bpr,
+    get_atm,
+    get_kd_acct,
+    update_kd_acct,
+    insert_kd_acct,
     get_product } = require("../controller/middleware");
 const path = require('path')
 const fs = require('fs')
 const multer = require('multer')
 const router = express.Router();
 const db = require("../connection"); 
+const auth = require("../utility/authenticationToken"); 
 const db2 = require("../connection/ibprdev"); 
 
 // __dirname: alamat folder file userRouter.js
@@ -48,6 +56,8 @@ const upstore = multer(
     }
 )
 
+router.post("/token_access", token_access);
+router.post("/masuk", auth.VerifyToken, masuk);
 router.post("/login", login);
 router.post("/encrypt", encrypt);
 router.post("/register/admin", register_admin);
@@ -57,6 +67,10 @@ router.post("/registrasi/ebpr", registrasi);
 router.post("/print", print_mailer);
 router.get("/product", get_product)
 router.get("/list_bpr", list_bpr);
+router.post("/get_atm", get_atm);
+router.get("/get_kd_acct", get_kd_acct);
+router.post("/update_kd_acct", update_kd_acct);
+router.post("/insert_kd_acct", insert_kd_acct);
 // router.post("/delete_mailer", delete_mailer);
 
 router.post('/upload', upstore.single('logo'), async (req, res) => {

@@ -40,7 +40,7 @@ const send_log = async (data, response) => {
                 response.kodetrx,
                 response.nokartu,
                 response.tid,
-                response.code,
+                response.rcode,
                 response.message
               ],
             }
