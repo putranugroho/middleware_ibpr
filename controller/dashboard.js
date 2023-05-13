@@ -618,18 +618,23 @@ const get_konsol = async (req, res) => {
 
 // API untuk Mengupdate Status ATM
 const release_status = async (req, res) => {
-    let {terminalid, waktu, lokasi, status} = req.body;
+    let {TERMINALID, WAKTU, LOKASI, STATUS} = req.body;
     console.log("Request Release Status");
     console.log(req.body);
     try {
         let atm = await db.sequelize.query(
             `SELECT * FROM kd_atm WHERE atm_id LIKE ?` ,
             {
-                replacements: [`%${terminalid}`],
+                replacements: [`%${TERMINALID}`],
                 type: db.sequelize.QueryTypes.SELECT,
             }
         )
         if (!atm.length) {
+            console.log({
+                rcode: "99",
+                status: "Failed",
+                message: "Gagal, Inquiry ATM",
+            });
             res.status(200).send({
                 rcode: "99",
                 status: "Failed",
@@ -639,7 +644,7 @@ const release_status = async (req, res) => {
             let [results, metadata] = await db.sequelize.query(
                 `UPDATE kd_atm SET status = ? WHERE atm_id LIKE ?`,
                 {
-                    replacements: [status, `%${terminalid}`],
+                    replacements: [STATUS, `%${TERMINALID}`],
                 }
             );
             if (!metadata) {

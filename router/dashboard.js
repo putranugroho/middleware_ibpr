@@ -9,6 +9,6 @@ router.get("/get_trans", get_trans);
 router.get("/all_trans", all_trans);
 router.get("/get_konsol", get_konsol);
 router.get("/list_atm", list_atm);
-router.post("/release_status", release_status);
+// router.post("/release_status", release_status);
 
 module.exports = router;

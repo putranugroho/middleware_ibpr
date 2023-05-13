@@ -5,6 +5,7 @@ const {
     decryptStringWithRsaPrivateKey,
   } = require("../utility/encrypt");
 const db = require("../connection");
+const db1 = require("../connection/ibprdev");
 const moment = require("moment");
 const jwt = require('jsonwebtoken');
 const { timeStamp } = require('console');
@@ -373,10 +374,10 @@ const registrasi = async (req, res) => {
 
 // API untuk Print Mailer
 const print_mailer = async (req, res) => {
-    let {user_id, bpr_id} = req.body;
+    let {no_hp, bpr_id} = req.body;
     try {
-        let response = await db.sequelize.query(
-            `SELECT mpin_cetak, pw_cetak FROM acct_ebpr WHERE user_id = ? AND bpr_id = ? AND status != '6'`,
+        let response = await db1.sequelize.query(
+            `SELECT mpin_cetak, pw_cetak FROM acct_ebpr WHERE no_hp = ? AND bpr_id = ? AND status != '6'`,
             {
                 replacements: [user_id, bpr_id],
                 type: db.sequelize.QueryTypes.SELECT,
