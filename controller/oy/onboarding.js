@@ -3,6 +3,7 @@
 const axios = require("axios").default;
 var https = require('https');
 const db = require("../../connection");
+const db1 = require("../../connection/ibprdev");
 const moment = require("moment");
 moment.locale("id");
 const { date } = require("../../utility/getDate");
@@ -164,7 +165,7 @@ const inquiry_account = async (req, res) => {
 
 // API untuk Inquiry Account
 const validate_user = async (req, res) => {
-    let {no_rek, no_hp, bpr_id, status, tgl_trans, tgl_transmis, rrn} = req.body;
+    let {no_rek, no_hp, password, bpr_id, status, tgl_trans, tgl_transmis, rrn} = req.body;
     try {
         console.log("REQ BODY VALIDATE");
         console.log(req.body);
@@ -183,6 +184,12 @@ const validate_user = async (req, res) => {
                 data: [],
             });
         } else {
+            let [results, metadata] = await db1.sequelize.query(
+                `UPDATE acct_ebpr SET password = ? WHERE no_hp = ? AND bpr_id = ? AND status != '6'`,
+                {
+                    replacements: [password, no_hp, bpr_id],
+                }
+            );
             const trx_code = "0100"
             const data = {no_rek, no_hp, bpr_id, trx_code, status, tgl_trans, rrn}
             const request = await connect_axios(bpr[0].gateway,"gateway_bpr/inquiry_account",data)
