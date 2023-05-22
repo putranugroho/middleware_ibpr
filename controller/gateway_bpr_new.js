@@ -447,6 +447,34 @@ const inquiry_account = async (req, res) => {
                 acct[0]["tgl_trans"] = tgl_trans
                 acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
                 acct[0]["rrn"] = rrn
+                res.status(200).send({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    rrn: rrn,
+                    data: acct[0],
+                });
+            }
+        } else if (trx_code == "0200") {
+            let acct = await db.sequelize.query(
+                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
+                {
+                    replacements: [bpr_id, no_hp, no_rek],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Belum Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                acct[0]["tgl_trans"] = tgl_trans
+                acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
+                acct[0]["rrn"] = rrn
                 if (status) {
                     let [results, metadata] = await db.sequelize.query(
                         `UPDATE cms_acct_ebpr SET status = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
@@ -497,7 +525,40 @@ const inquiry_account = async (req, res) => {
 
                 }
             }
-        } else if (trx_code == "0200") {
+        } else if (trx_code == "0300") {
+            let gl = await db.sequelize.query(
+                `SELECT * FROM master_kd_acct`,
+                {
+                    replacements: [bpr_id],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!gl.length) {
+                res.status(200).send({
+                    code: "004",
+                    status: "Failed",
+                    message: "Gagal Account Tidak Ditemukan",
+                    data: null,
+                });
+            } else {
+                const data_core = {
+                    bpr_id,
+                    trx_code,
+                    trx_type,
+                    tgl_trans,
+                    tgl_transmis: moment().format('YYMMDDHHmmss'),
+                    rrn,
+                    data: gl
+                }
+                const request = await connect_axios(url, "Inquiry", data_core)
+                res.status(200).send({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    data: request.data.data,
+                });
+            }
+        } else if (trx_code == "0400") {
             const data_core = {
                 // no_hp:rekening[0].no_hp,
                 bpr_id,
@@ -533,39 +594,6 @@ const inquiry_account = async (req, res) => {
                         data: null,
                     });
                 }
-            }
-        } else if (trx_code == "0300") {
-            let gl = await db.sequelize.query(
-                `SELECT * FROM master_kd_acct`,
-                {
-                    replacements: [bpr_id],
-                    type: db.sequelize.QueryTypes.SELECT,
-                }
-            )
-            if (!gl.length) {
-                res.status(200).send({
-                    code: "004",
-                    status: "Failed",
-                    message: "Gagal Account Tidak Ditemukan",
-                    data: null,
-                });
-            } else {
-                const data_core = {
-                    bpr_id,
-                    trx_code,
-                    trx_type,
-                    tgl_trans,
-                    tgl_transmis: moment().format('YYMMDDHHmmss'),
-                    rrn,
-                    data: gl
-                }
-                const request = await connect_axios(url, "Inquiry", data_core)
-                res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    data: request.data.data,
-                });
             }
         } else if (trx_code == "0500") {
             let acct = await db.sequelize.query(
