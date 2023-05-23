@@ -415,7 +415,7 @@ const url = process.env.CORE_URL//"https://gateway-devapi.medtransdigital.com/"
 
 // API untuk Inquiry Account
 const inquiry_account = async (req, res) => {
-    let { no_hp, no_rek, bpr_id, trx_code, trx_type, status, tgl_trans, tgl_transmis, rrn } = req.body;
+    let { no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
     try {
         console.log("REQ INQ ACC GW");
         console.log(req.body);
@@ -457,9 +457,9 @@ const inquiry_account = async (req, res) => {
             }
         } else if (trx_code == "0200") {
             let acct = await db.sequelize.query(
-                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
+                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND pin = ? status != '6'`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek],
+                    replacements: [bpr_id, no_hp, no_rek, pin],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )

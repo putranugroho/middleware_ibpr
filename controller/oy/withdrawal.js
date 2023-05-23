@@ -1565,84 +1565,85 @@ const release_withdrawal = async (req, res) => {
                                             ],
                                             }
                                         );   
-                                    if (data.JENISTX == "TRX") {
-                                        // response = await error_response(data,response,nominal,get_atm[0].nama_bpr,get_atm[0].nama_atm,moment().format('DD-MM-YYYY HH:mm:ss'),"PENARIKAN TUNAI",`NOMER RESI :${data.TID}`,`NILAI = Rp. ${nilai}`,"00","Transaksi Berhasil")
-                                        response = await error_response(
-                                            data,
-                                            response,
-                                            nominal,
-                                            "iBPR",
-                                            "ATM iBPR",
-                                            "1001",
-                                            moment().format('DD-MM-YYYY HH:mm:ss'),
-                                            "",
-                                            `TRACE : ${data.TID}`,
-                                            "",
-                                            "*** TARIK TUNAI TANPA KARTU ***",
-                                            "",
-                                            `NAMA     = ${kartu[0].nama_rek}`,
-                                            `NOMER HP = #########${no_hp.substring(9,no_hp.length)}`,
-                                            `NILAI    = Rp. ${nilai}`,
-                                            `TOKEN    = ${data.OTP}`,
-                                            "",
-                                            "TERIMA KASIH",
-                                            "00",
-                                            "Transaksi Berhasil"
-                                            )
-                                        const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                        const nasabah = await connect_axios("https://avi-drinking-pts-modems.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
-                                        console.log("Inquiry account");
-                                        console.log(nasabah);
-                                        const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
-                                        request = await connect_axios("https://avi-drinking-pts-modems.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
-                                        console.log("request");
-                                        console.log(request);
-                                        await send_log(data,response)
-                                        console.log(response); 
-                                        res.status(200).send(
-                                            response
-                                        );       
-                                    } else if (data.JENISTX == "REV") {
-                                        const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                        const nasabah = await connect_axios("https://avi-drinking-pts-modems.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
-                                        console.log("Inquiry account");
-                                        console.log(nasabah)
-                                        const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
-                                        request = await connect_axios("https://avi-drinking-pts-modems.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)}
-                                        console.log("request");
-                                        console.log(request);
-                                        response["jumlahtx"] = nominal.substring(nominal.length - 12, nominal.length)
-                                        response["kodetrx"] = data.KODETRX
-                                        response["nokartu"] = data.NOKARTU
-                                        response["tid"] = data.TID
-                                        response["text1"] = null
-                                        response["text2"] = `NAMA  = ${kartu[0].nama_rek}`
-                                        response["text3"] = `NILAI = Rp. ${nilai}`
-                                        response["text4"] = null
-                                        response["text5"] = null
-                                        response["text6"] = null
-                                        response["text7"] = null
-                                        response["text8"] = null
-                                        response["text9"] = null
-                                        response["text10"] = null
-                                        response["text11"] = null
-                                        response["text12"] = null
-                                        response["text13"] = null
-                                        response["text14"] = null
-                                        response["text15"] = null
-                                        response["text16"] = null
-                                        response["text17"] = null
-                                        response["text18"] = null
-                                        response["text19"] = null
-                                        response["text20"] = null
-                                        response['rcode'] = "00"
-                                        response['message'] = "REVERSAL SUKSES"
-                                        //--berhasil dapat list product update atau insert ke db --//
-                                        await send_log(data,response)
-                                        console.log(response); 
-                                        res.status(200).send(
-                                            response
-                                        );
+                                        if (data.JENISTX == "TRX") {
+                                            // response = await error_response(data,response,nominal,get_atm[0].nama_bpr,get_atm[0].nama_atm,moment().format('DD-MM-YYYY HH:mm:ss'),"PENARIKAN TUNAI",`NOMER RESI :${data.TID}`,`NILAI = Rp. ${nilai}`,"00","Transaksi Berhasil")
+                                            response = await error_response(
+                                                data,
+                                                response,
+                                                nominal,
+                                                "iBPR",
+                                                "ATM iBPR",
+                                                "1001",
+                                                moment().format('DD-MM-YYYY HH:mm:ss'),
+                                                "",
+                                                `TRACE : ${data.TID}`,
+                                                "",
+                                                "*** TARIK TUNAI TANPA KARTU ***",
+                                                "",
+                                                `NAMA     = ${kartu[0].nama_rek}`,
+                                                `NOMER HP = #########${no_hp.substring(9,no_hp.length)}`,
+                                                `NILAI    = Rp. ${nilai}`,
+                                                `TOKEN    = ${data.OTP}`,
+                                                "",
+                                                "TERIMA KASIH",
+                                                "00",
+                                                "Transaksi Berhasil"
+                                                )
+                                            const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                            const nasabah = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
+                                            console.log("Inquiry account");
+                                            console.log(nasabah);
+                                            const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
+                                            request = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
+                                            console.log("request tartun");
+                                            console.log(request);
+                                            await send_log(data,response)
+                                            console.log(response); 
+                                            res.status(200).send(
+                                                response
+                                            );       
+                                        } else if (data.JENISTX == "REV") {
+                                            const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                            const nasabah = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
+                                            console.log("Inquiry account");
+                                            console.log(nasabah)
+                                            const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
+                                            request = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
+                                            console.log("request");
+                                            console.log(request);
+                                            response["jumlahtx"] = nominal.substring(nominal.length - 12, nominal.length)
+                                            response["kodetrx"] = data.KODETRX
+                                            response["nokartu"] = data.NOKARTU
+                                            response["tid"] = data.TID
+                                            response["text1"] = null
+                                            response["text2"] = `NAMA  = ${kartu[0].nama_rek}`
+                                            response["text3"] = `NILAI = Rp. ${nilai}`
+                                            response["text4"] = null
+                                            response["text5"] = null
+                                            response["text6"] = null
+                                            response["text7"] = null
+                                            response["text8"] = null
+                                            response["text9"] = null
+                                            response["text10"] = null
+                                            response["text11"] = null
+                                            response["text12"] = null
+                                            response["text13"] = null
+                                            response["text14"] = null
+                                            response["text15"] = null
+                                            response["text16"] = null
+                                            response["text17"] = null
+                                            response["text18"] = null
+                                            response["text19"] = null
+                                            response["text20"] = null
+                                            response['rcode'] = "00"
+                                            response['message'] = "REVERSAL SUKSES"
+                                            //--berhasil dapat list product update atau insert ke db --//
+                                            await send_log(data,response)
+                                            console.log(response); 
+                                            res.status(200).send(
+                                                response
+                                            );
+                                        }
                                     }
                                 }
                             } else if (data.KODETRX.substring(0,2) == "88") {
