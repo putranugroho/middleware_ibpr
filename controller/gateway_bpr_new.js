@@ -444,20 +444,30 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                acct[0]["tgl_trans"] = tgl_trans
-                acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
-                acct[0]["rrn"] = rrn
-                res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: acct[0],
-                });
+                if (acct[0].status == "1") {
+                    res.status(200).send({
+                        code: "003",
+                        status: "Failed",
+                        message: "Gagal, Akun Sudah diaktivasi",
+                        rrn: rrn,
+                        data: null,
+                    });
+                } else {
+                    acct[0]["tgl_trans"] = tgl_trans
+                    acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
+                    acct[0]["rrn"] = rrn
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
+                }
             }
         } else if (trx_code == "0200") {
             let acct = await db.sequelize.query(
-                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND pin = ? status != '6'`,
+                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND mpin_cetak = ? AND status != '6'`,
                 {
                     replacements: [bpr_id, no_hp, no_rek, pin],
                     type: db.sequelize.QueryTypes.SELECT,
@@ -467,54 +477,41 @@ const inquiry_account = async (req, res) => {
                 res.status(200).send({
                     code: "003",
                     status: "Failed",
-                    message: "Gagal, Akun Belum Terdaftar",
+                    message: "Gagal, Akun Tidak Ditemukan",
                     rrn: rrn,
                     data: null,
                 });
             } else {
-                acct[0]["tgl_trans"] = tgl_trans
-                acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
-                acct[0]["rrn"] = rrn
-                if (status) {
-                    let [results, metadata] = await db.sequelize.query(
-                        `UPDATE cms_acct_ebpr SET status = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
-                        {
-                            replacements: [status, no_rek, no_hp, bpr_id]
-                        }
-                    );
-                    if (!metadata) {
-                        console.log({
-                            code: "001",
-                            status: "Failed",
-                            message: "Gagal, Merubah Status Akun!!!",
-                            rrn: rrn,
-                            data: null,
-                        });
-                        res.status(200).send({
-                            code: "001",
-                            status: "Failed",
-                            message: "Gagal, Merubah Status Akun!!!",
-                            rrn: rrn,
-                            data: null,
-                        });
-                    } else {
-                        acct[0].status = status
-                        console.log({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: acct[0],
-                        });
-                        res.status(200).send({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: acct[0],
-                        });
+                let [results, metadata] = await db.sequelize.query(
+                    `UPDATE cms_acct_ebpr SET status = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                    {
+                        replacements: [status, no_rek, no_hp, bpr_id]
                     }
+                );
+                if (!metadata) {
+                    console.log({
+                        code: "001",
+                        status: "Failed",
+                        message: "Gagal, Merubah Status Akun!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
+                    res.status(200).send({
+                        code: "001",
+                        status: "Failed",
+                        message: "Gagal, Merubah Status Akun!!!",
+                        rrn: rrn,
+                        data: null,
+                    });
                 } else {
+                    acct[0].status = status
+                    console.log({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
                     res.status(200).send({
                         code: "000",
                         status: "ok",
@@ -522,7 +519,6 @@ const inquiry_account = async (req, res) => {
                         rrn: rrn,
                         data: acct[0],
                     });
-
                 }
             }
         } else if (trx_code == "0300") {
