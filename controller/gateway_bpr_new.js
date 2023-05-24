@@ -504,7 +504,6 @@ const inquiry_account = async (req, res) => {
                         data: null,
                     });
                 } else {
-                    acct[0].status = status
                     console.log({
                         code: "000",
                         status: "ok",
@@ -558,34 +557,60 @@ const inquiry_account = async (req, res) => {
             const data_core = {
                 // no_hp:rekening[0].no_hp,
                 bpr_id,
-                no_rek,
-                gl_jns: "2",
-                trx_code,
+                trx_code:"0300",
                 trx_type,
                 tgl_trans,
                 tgl_transmis:moment().format('YYMMDDHHmmss'),
                 rrn,
+                data: [{
+                    no_rek,
+                    gl_jns: "2",
+                }]
             }
+            console.log("data_core");
+            console.log(data_core);
             const request = await connect_axios(url, "Inquiry", data_core)
-            console.log("request 0200 inq");
-            console.log(request);
             if (request.code !== "000") {
                 console.log(request);
                 res.status(200).send(request);
             } else {
-                if (request.data.status_rek == "AKTIF") {
+                if (request.data.data[0].status_rek == "AKTIF") {
+                    console.log(
+                        {
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: [
+                                {
+                                    no_rek,
+                                    nama_rek: request.data.data[0].nama,
+                                    saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                    saldo_blokir:"0",
+                                    saldo_min:"50000",
+                                }
+                            ],
+                        });
                     res.status(200).send({
                         code: "000",
                         status: "ok",
                         message: "Success",
                         rrn: rrn,
-                        data: request.data,
+                        data: [
+                            {
+                                no_rek,
+                                nama_rek: request.data.data[0].nama,
+                                saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                saldo_blokir:"0",
+                                saldo_min:"50000",
+                            }
+                        ],
                     });
                 } else {
                     res.status(200).send({
                         code: "008",
                         status: "Failed",
-                        message: request.data.status_rek,
+                        message: request.data.data[0].status_rek,
                         rrn: rrn,
                         data: null,
                     });
