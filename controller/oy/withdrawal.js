@@ -1484,7 +1484,7 @@ const release_withdrawal = async (req, res) => {
                         }
                     }   
                 } else {
-                    bpr_id = "1001"
+                    bpr_id = "600931"
                     let check_bpr = await db1.sequelize.query(
                         `SELECT bpr_id, nama_bpr FROM kd_bpr WHERE bpr_id = ?`,
                         {
@@ -1590,11 +1590,11 @@ const release_withdrawal = async (req, res) => {
                                                 "Transaksi Berhasil"
                                                 )
                                             const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                            const nasabah = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
+                                            const nasabah = await connect_axios("https://physical-actions-tracker-border.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
                                             console.log("Inquiry account");
                                             console.log(nasabah);
                                             const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
-                                            request = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
+                                            request = await connect_axios("https://physical-actions-tracker-border.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
                                             console.log("request tartun");
                                             console.log(request);
                                             await send_log(data,response)
@@ -1604,11 +1604,11 @@ const release_withdrawal = async (req, res) => {
                                             );       
                                         } else if (data.JENISTX == "REV") {
                                             const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                            const nasabah = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
+                                            const nasabah = await connect_axios("https://physical-actions-tracker-border.trycloudflare.com/", "gateway_bpr/inquiry_account", data_nasabah)
                                             console.log("Inquiry account");
                                             console.log(nasabah)
                                             const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
-                                            request = await connect_axios("https://cant-washington-yearly-craig.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
+                                            request = await connect_axios("https://physical-actions-tracker-border.trycloudflare.com/", "gateway_bpr/withdrawal", data_request)
                                             console.log("request");
                                             console.log(request);
                                             response["jumlahtx"] = nominal.substring(nominal.length - 12, nominal.length)
