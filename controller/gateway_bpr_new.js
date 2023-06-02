@@ -489,7 +489,8 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                let mpin_salah = parseInt(acct[0].mpin_salah)    
+                let mpin_salah = parseInt(acct[0].mpin_salah)
+  
                 if (mpin_salah == 3 && acct[0].status == 1) {
                     res.status(200).send({
                         code: "007",
@@ -546,9 +547,9 @@ const inquiry_account = async (req, res) => {
                     mpin_salah = mpin_salah + 1
                     if (mpin_salah == 3) {
                         let [results, metadata] = await db.sequelize.query(
-                            `UPDATE acct_ebpr SET mpin_salah = ?, status = '2'  WHERE user_id = ? AND no_rek = ?`,
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ?, status = '2'  WHERE no_hp = ? AND no_rek = ?`,
                             {
-                                replacements: [`${mpin_salah}`, user_id, no_rek,]
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
                             }
                         );
                         res.status(200).send({
@@ -559,9 +560,9 @@ const inquiry_account = async (req, res) => {
                         });
                     } else {
                         let [results, metadata] = await db.sequelize.query(
-                            `UPDATE acct_ebpr SET mpin_salah = ? WHERE user_id = ? AND no_rek = ?`,
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ? WHERE no_hp = ? AND no_rek = ?`,
                             {
-                                replacements: [`${mpin_salah}`, user_id, no_rek,]
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
                             }
                         );
                         res.status(200).send({
@@ -1545,6 +1546,7 @@ const withdrawal = async (req, res) => {
         nama_rek,
         amount,
         trans_fee,
+        pin,
         trx_code,
         trx_type,
         keterangan,
@@ -1589,7 +1591,23 @@ const withdrawal = async (req, res) => {
                     data: null,
                 });
             } else {
-                if (check_status[0].status === "1") {
+                let mpin_salah = parseInt(check_status[0].mpin_salah)
+
+                if (mpin_salah == 3 && check_status[0].status == 1) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, mPIN Terblokir!!!",
+                        data: null,
+                    });
+                } else if (mpin_salah != 3 && check_status[0].status == 2) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Anda Telah diBlokir!!!",
+                        data: null,
+                    });
+                } else if (check_status[0].mpin == pin || trx_type === "REV") {
                     let get_nosbb = await db.sequelize.query(
                         `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
                         {
@@ -1854,32 +1872,35 @@ const withdrawal = async (req, res) => {
                             }
                         }
                     }
-                } else if (check_status[0].status === "2") {
-                    console.log({
-                        code: "007",
-                        status: "Failed",
-                        message: "Gagal, mPIN Terblokir!!!",
-                        data: null,
-                    });
-                    res.status(200).send({
-                        code: "007",
-                        status: "Failed",
-                        message: "Gagal, mPIN Terblokir!!!",
-                        data: null,
-                    });
                 } else {
-                    console.log({
-                        code: "003",
-                        status: "Failed",
-                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
-                        data: null,
-                    });
-                    res.status(200).send({
-                        code: "003",
-                        status: "Failed",
-                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
-                        data: null,
-                    });
+                    mpin_salah = mpin_salah + 1
+                    if (mpin_salah == 3) {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ?, status = '2'  WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "007",
+                            status: "Failed",
+                            message: "Gagal, mPIN Terblokir!!!",
+                            data: null,
+                        });
+                    } else {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ? WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "003",
+                            status: "Failed",
+                            message: "Gagal, Pin Anda Salah!!!",
+                            data: null,
+                        });
+                    }
                 }
             }
         } else if (trx_code == "1100") {

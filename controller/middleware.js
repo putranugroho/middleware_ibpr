@@ -132,7 +132,6 @@ const login = async (req, res) => {
 const encrypt = async (req, res) => {
     let {password} = req.body;
     try {
-        password = `${((parseInt(password) + 111111 - 999999) / 2)}`
         let Password = await encryptStringWithRsaPublicKey(
             password,
             "./utility/privateKey.pem"
