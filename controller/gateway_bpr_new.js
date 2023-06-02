@@ -1874,7 +1874,7 @@ const withdrawal = async (req, res) => {
                     }
                 } else {
                     mpin_salah = mpin_salah + 1
-                    if (mpin_salah == 3) {
+                    if (mpin_salah >= 3) {
                         let [results, metadata] = await db.sequelize.query(
                             `UPDATE cms_acct_ebpr SET mpin_salah = ?, status = '2'  WHERE no_hp = ? AND no_rek = ?`,
                             {
