@@ -1593,7 +1593,7 @@ const withdrawal = async (req, res) => {
             } else {
                 let mpin_salah = parseInt(check_status[0].mpin_salah)
 
-                if (mpin_salah == 3 && check_status[0].status == 1) {
+                if (mpin_salah == 3 && check_status[0].status == 2) {
                     res.status(200).send({
                         code: "007",
                         status: "Failed",
