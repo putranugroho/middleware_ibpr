@@ -489,9 +489,7 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                let mpin_salah = parseInt(acct[0].mpin_salah)
-                let Pin = encryptStringWithRsaPublicKey(pin, "./utility/privateKey.pem")
-    
+                let mpin_salah = parseInt(acct[0].mpin_salah)    
                 if (mpin_salah == 3 && acct[0].status == 1) {
                     res.status(200).send({
                         code: "007",
