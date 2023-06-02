@@ -504,7 +504,7 @@ const inquiry_account = async (req, res) => {
                         message: "Gagal, Akun Anda Telah diBlokir!!!",
                         data: null,
                     });
-                } else if (acct[0].mpin == Pin) {
+                } else if (acct[0].mpin == pin) {
                     let [results, metadata] = await db.sequelize.query(
                         `UPDATE cms_acct_ebpr SET status = ?, mpin_salah = '0' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
                         {
