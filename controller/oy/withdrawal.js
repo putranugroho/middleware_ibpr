@@ -1743,13 +1743,17 @@ const release_withdrawal = async (req, res) => {
                                     let nominal = `00000000000${cek_hold_dana[0].amount}00`
                                     let nilai = formatRibuan(cek_hold_dana[0].amount)
                                     nominal = nominal.substring(nominal.length-12, nominal.length)
+                                    const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                    const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
+                                    console.log("Inquiry account");
+                                    console.log(nasabah)
                                     // response = await error_response(data,response,nominal,null,`NAMA  = ${kartu[0].nama_rek}`,`NILAI = Rp. ${nilai}`,null,null,null,"00","Transaksi Berhasil")
                                     response = await error_response(
                                         data,
                                         response,
                                         nominal,
                                         null,
-                                        `NAMA = ${kartu[0].nama_rek}`,
+                                        `NAMA = ${nasabah.data.nama_rek}`,
                                         `NILAI = Rp. ${nilai}`,
                                         null,
                                         null,
