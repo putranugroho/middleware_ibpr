@@ -491,7 +491,7 @@ const inquiry_account = async (req, res) => {
             } else {
                 let mpin_salah = parseInt(acct[0].mpin_salah)
   
-                if (mpin_salah == 3 && acct[0].status == 1) {
+                if (mpin_salah == 3 && acct[0].status == 2) {
                     res.status(200).send({
                         code: "007",
                         status: "Failed",
