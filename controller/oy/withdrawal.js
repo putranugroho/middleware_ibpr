@@ -1519,11 +1519,18 @@ const release_withdrawal = async (req, res) => {
                             );
                         } else {
                             if (data.KODETRX.substring(0,2) == "01") {
+                                const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                console.log("data_nasabah");
+                                console.log(data_nasabah);
+                                const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
+                                console.log("Inquiry account");
+                                console.log(nasabah);
                                 let cek_hold_dana = await db1.sequelize.query(
-                                    `SELECT * FROM dummy_hold_dana WHERE token = ?`,
+                                    `SELECT * FROM dummy_hold_dana WHERE token = ? AND no_rek = ?`,
                                     {
                                     replacements: [
-                                        data.OTP
+                                        data.OTP,
+                                        nasabah.data.no_rek
                                     ],
                                     type: db1.sequelize.QueryTypes.SELECT,
                                     }
@@ -1541,11 +1548,9 @@ const release_withdrawal = async (req, res) => {
                                         let nilai = formatRibuan(cek_hold_dana[0].amount)
                                         let amount = cek_hold_dana[0].amount
                                         nominal = nominal.substring(nominal.length-12, nominal.length)
-                                        const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                        const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
-                                        console.log("Inquiry account");
-                                        console.log(nasabah);
                                         const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
+                                        console.log("data_request Transaksi");
+                                        console.log(data_request);
                                         request = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/withdrawal", data_request)
                                         console.log("request tartun");
                                         console.log(request);
@@ -1630,10 +1635,6 @@ const release_withdrawal = async (req, res) => {
                                         let nilai = formatRibuan(cek_hold_dana[0].amount)
                                         let amount = cek_hold_dana[0].amount
                                         nominal = nominal.substring(nominal.length-12, nominal.length)
-                                        const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                        const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
-                                        console.log("Inquiry account");
-                                        console.log(nasabah)
                                         const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
                                         console.log("data_request Reversal");
                                         console.log(data_request);
@@ -1649,11 +1650,12 @@ const release_withdrawal = async (req, res) => {
                                             );
                                         } else {
                                             let [results, metadata] = await db1.sequelize.query(
-                                                `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND status = '1'`,
+                                                `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
                                                 {
                                                 replacements: [
                                                     kartu[0].no_rek,
-                                                    data.OTP
+                                                    cek_hold_dana[0].token,
+                                                    cek_hold_dana[0].rrn
                                                 ],
                                                 }
                                             );
@@ -1666,14 +1668,16 @@ const release_withdrawal = async (req, res) => {
                                                 );
                                             } else {
                                                 let [results, metadata] = await db1.sequelize.query(
-                                                    `UPDATE dummy_hold_dana SET status = 'R' WHERE token = ? AND status = '1'`,
+                                                    `UPDATE dummy_hold_dana SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
                                                     {
                                                     replacements: [
-                                                        data.OTP
+                                                        kartu[0].no_rek,
+                                                        cek_hold_dana[0].token,
+                                                        cek_hold_dana[0].rrn
                                                     ],
                                                     }
                                                 );
-                                                let [results2, metadata2] = await db.sequelize.query(
+                                                let [results2, metadata2] = await db1.sequelize.query(
                                                     `UPDATE dummy_transaksi SET status_rek = 'R' WHERE unique_id = ? AND bpr_id= ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
                                                     {
                                                         replacements: [
@@ -1682,7 +1686,7 @@ const release_withdrawal = async (req, res) => {
                                                             kartu[0].no_rek,
                                                             "1000",
                                                             amount,
-                                                            rrn
+                                                            cek_hold_dana[0].rrn
                                                         ],
                                                     }
                                                 );
