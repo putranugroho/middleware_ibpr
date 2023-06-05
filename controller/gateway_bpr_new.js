@@ -1608,6 +1608,12 @@ const withdrawal = async (req, res) => {
                         data: null,
                     });
                 } else if (check_status[0].mpin == pin || trx_type === "REV") {
+                    let [results, metadata] = await db.sequelize.query(
+                        `UPDATE cms_acct_ebpr SET mpin_salah = '0' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                        {
+                            replacements: [no_rek, no_hp, bpr_id]
+                        }
+                    );
                     let check_limit = await db.sequelize.query(
                         `SELECT * FROM cms_accttype WHERE acct_type = ?`,
                         {
