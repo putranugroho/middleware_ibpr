@@ -1563,10 +1563,10 @@ const release_withdrawal = async (req, res) => {
                                             );
                                         } else {
                                             let [results, metadata] = await db1.sequelize.query(
-                                                `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
+                                                `UPDATE token SET status = '1' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '0'`,
                                                 {
                                                 replacements: [
-                                                    kartu[0].no_rek,
+                                                    cek_hold_dana[0].no_rek,
                                                     cek_hold_dana[0].token,
                                                     cek_hold_dana[0].rrn
                                                 ],
@@ -1581,23 +1581,21 @@ const release_withdrawal = async (req, res) => {
                                                 );
                                             } else {
                                                 let [results, metadata] = await db1.sequelize.query(
-                                                    `UPDATE dummy_hold_dana SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
+                                                    `UPDATE dummy_hold_dana SET status = '1' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '0'`,
                                                     {
                                                     replacements: [
-                                                        kartu[0].no_rek,
+                                                        cek_hold_dana[0].no_rek,
                                                         cek_hold_dana[0].token,
                                                         cek_hold_dana[0].rrn
                                                     ],
                                                     }
                                                 );
                                                 let [results2, metadata2] = await db1.sequelize.query(
-                                                    `UPDATE dummy_transaksi SET status_rek = 'R' WHERE unique_id = ? AND bpr_id= ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                                                    `UPDATE dummy_transaksi SET status_rek = '1' WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '0'`,
                                                     {
                                                         replacements: [
-                                                            kartu[0].unique_id,
-                                                            kartu[0].bpr_id,
-                                                            kartu[0].no_rek,
-                                                            "1000",
+                                                            cek_hold_dana[0].reff,
+                                                            cek_hold_dana[0].no_rek,
                                                             amount,
                                                             cek_hold_dana[0].rrn
                                                         ],
@@ -1656,7 +1654,7 @@ const release_withdrawal = async (req, res) => {
                                                 `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
                                                 {
                                                 replacements: [
-                                                    kartu[0].no_rek,
+                                                    cek_hold_dana[0].no_rek,
                                                     cek_hold_dana[0].token,
                                                     cek_hold_dana[0].rrn
                                                 ],
@@ -1674,20 +1672,18 @@ const release_withdrawal = async (req, res) => {
                                                     `UPDATE dummy_hold_dana SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
                                                     {
                                                     replacements: [
-                                                        kartu[0].no_rek,
+                                                        cek_hold_dana[0].no_rek,
                                                         cek_hold_dana[0].token,
                                                         cek_hold_dana[0].rrn
                                                     ],
                                                     }
                                                 );
                                                 let [results2, metadata2] = await db1.sequelize.query(
-                                                    `UPDATE dummy_transaksi SET status_rek = 'R' WHERE unique_id = ? AND bpr_id= ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                                                    `UPDATE dummy_transaksi SET status_rek = 'R' WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
                                                     {
                                                         replacements: [
-                                                            kartu[0].unique_id,
-                                                            kartu[0].bpr_id,
-                                                            kartu[0].no_rek,
-                                                            "1000",
+                                                            cek_hold_dana[0].reff,
+                                                            cek_hold_dana[0].no_rek,
                                                             amount,
                                                             cek_hold_dana[0].rrn
                                                         ],
