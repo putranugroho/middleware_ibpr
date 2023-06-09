@@ -1920,7 +1920,7 @@ const withdrawal = async (req, res) => {
                             });
                         }
                     }
-                } else {
+                } else if (check_status[0].status == 1) {
                     mpin_salah = mpin_salah + 1
                     if (mpin_salah >= 3) {
                         let [results, metadata] = await db.sequelize.query(
@@ -1949,6 +1949,13 @@ const withdrawal = async (req, res) => {
                             data: null,
                         });
                     }
+                } else {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
+                        data: null,
+                    });
                 }
             }
         } else if (trx_code == "1100") {
