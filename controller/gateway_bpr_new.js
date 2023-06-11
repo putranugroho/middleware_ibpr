@@ -1651,7 +1651,14 @@ const withdrawal = async (req, res) => {
             } else {
                 let mpin_salah = parseInt(check_status[0].mpin_salah)
 
-                if (mpin_salah == 3 && check_status[0].status == 2) {
+                if (check_status[0].status != 2 && check_status[0].status != 1) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
+                        data: null,
+                    });
+                } else if (mpin_salah == 3 && check_status[0].status == 2) {
                     res.status(200).send({
                         code: "007",
                         status: "Failed",
@@ -1978,13 +1985,6 @@ const withdrawal = async (req, res) => {
                             });
                         }
                     }
-                } else if (check_status[0].mpin != pin && check_status[0].status != 1) {
-                    res.status(200).send({
-                        code: "007",
-                        status: "Failed",
-                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
-                        data: null,
-                    });
                 } else {
                     mpin_salah = mpin_salah + 1
                     if (mpin_salah >= 3) {
