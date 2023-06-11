@@ -609,9 +609,9 @@ const inquiry_account = async (req, res) => {
             }
         } else if (trx_code == "0400") {
             let acct = await db.sequelize.query(
-                `SELECT status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ?`,
+                `SELECT status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_rek = ?`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek],
+                    replacements: [bpr_id, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -683,7 +683,15 @@ const inquiry_account = async (req, res) => {
                                 status: "Failed",
                                 message: request.data.data[0].status_rek,
                                 rrn: rrn,
-                                data: null,
+                                data: [
+                                    {
+                                        no_rek,
+                                        nama_rek: "",
+                                        saldo:"0",
+                                        saldo_blokir:"0",
+                                        saldo_min:"0",
+                                    }
+                                ],
                             });
                         }
                     }   
