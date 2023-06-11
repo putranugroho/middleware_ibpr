@@ -608,43 +608,101 @@ const inquiry_account = async (req, res) => {
                 });
             }
         } else if (trx_code == "0400") {
-            const data_core = {
-                // no_hp:rekening[0].no_hp,
-                bpr_id,
-                trx_code:"0300",
-                trx_type,
-                tgl_trans,
-                tgl_transmis:moment().format('YYMMDDHHmmss'),
-                rrn,
-                data: [{
-                    no_rek,
-                    gl_jns: "2",
-                }]
-            }
-            console.log("data_core");
-            console.log(data_core);
-            const request = await connect_axios(url, "Inquiry", data_core)
-            if (request.code !== "000") {
-                console.log(request);
-                res.status(200).send(request);
+            let acct = await db.sequelize.query(
+                `SELECT status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ?`,
+                {
+                    replacements: [bpr_id, no_hp, no_rek],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Belum Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
             } else {
-                if (request.data.data[0].status_rek == "AKTIF") {
-                    console.log(
-                        {
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: [
+                if (acct[0].status == "1") {
+                    const data_core = {
+                        // no_hp:rekening[0].no_hp,
+                        bpr_id,
+                        trx_code:"0300",
+                        trx_type,
+                        tgl_trans,
+                        tgl_transmis:moment().format('YYMMDDHHmmss'),
+                        rrn,
+                        data: [{
+                            no_rek,
+                            gl_jns: "2",
+                        }]
+                    }
+                    console.log("data_core");
+                    console.log(data_core);
+                    const request = await connect_axios(url, "Inquiry", data_core)
+                    if (request.code !== "000") {
+                        console.log(request);
+                        res.status(200).send(request);
+                    } else {
+                        if (request.data.data[0].status_rek == "AKTIF") {
+                            console.log(
                                 {
-                                    no_rek,
-                                    nama_rek: request.data.data[0].nama,
-                                    saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
-                                    saldo_blokir:"0",
-                                    saldo_min:"50000",
-                                }
-                            ],
-                        });
+                                    code: "000",
+                                    status: "ok",
+                                    message: "Success",
+                                    rrn: rrn,
+                                    data: [
+                                        {
+                                            no_rek,
+                                            nama_rek: request.data.data[0].nama,
+                                            saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                            saldo_blokir:"0",
+                                            saldo_min:"50000",
+                                        }
+                                    ],
+                                });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: [
+                                    {
+                                        no_rek,
+                                        nama_rek: request.data.data[0].nama,
+                                        saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                        saldo_blokir:"0",
+                                        saldo_min:"50000",
+                                    }
+                                ],
+                            });
+                        } else {
+                            res.status(200).send({
+                                code: "008",
+                                status: "Failed",
+                                message: request.data.data[0].status_rek,
+                                rrn: rrn,
+                                data: null,
+                            });
+                        }
+                    }   
+                } else {console.log(
+                    {
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: [
+                            {
+                                no_rek,
+                                nama_rek: "",
+                                saldo:"0",
+                                saldo_blokir:"0",
+                                saldo_min:"0",
+                            }
+                        ],
+                    });
                     res.status(200).send({
                         code: "000",
                         status: "ok",
@@ -653,20 +711,12 @@ const inquiry_account = async (req, res) => {
                         data: [
                             {
                                 no_rek,
-                                nama_rek: request.data.data[0].nama,
-                                saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                nama_rek: "",
+                                saldo:"0",
                                 saldo_blokir:"0",
-                                saldo_min:"50000",
+                                saldo_min:"0",
                             }
                         ],
-                    });
-                } else {
-                    res.status(200).send({
-                        code: "008",
-                        status: "Failed",
-                        message: request.data.data[0].status_rek,
-                        rrn: rrn,
-                        data: null,
                     });
                 }
             }
@@ -1607,7 +1657,7 @@ const withdrawal = async (req, res) => {
                         message: "Gagal, Akun Anda Telah diBlokir!!!",
                         data: null,
                     });
-                } else if (check_status[0].mpin == pin || trx_type === "REV") {
+                } else if ((check_status[0].mpin == pin || trx_type === "REV") && check_status[0].status == 1) {
                     let [results, metadata] = await db.sequelize.query(
                         `UPDATE cms_acct_ebpr SET mpin_salah = '0' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
                         {
@@ -1920,7 +1970,14 @@ const withdrawal = async (req, res) => {
                             });
                         }
                     }
-                } else if (check_status[0].status == 1) {
+                } else if (check_status[0].mpin != pin && check_status[0].status != 1) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
+                        data: null,
+                    });
+                } else {
                     mpin_salah = mpin_salah + 1
                     if (mpin_salah >= 3) {
                         let [results, metadata] = await db.sequelize.query(
@@ -1949,13 +2006,6 @@ const withdrawal = async (req, res) => {
                             data: null,
                         });
                     }
-                } else {
-                    res.status(200).send({
-                        code: "007",
-                        status: "Failed",
-                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
-                        data: null,
-                    });
                 }
             }
         } else if (trx_code == "1100") {
