@@ -415,7 +415,7 @@ const url = process.env.CORE_URL//"https://gateway-devapi.medtransdigital.com/"
 
 // API untuk Inquiry Account
 const inquiry_account = async (req, res) => {
-    let { no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
+    let { user_id, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
     try {
         console.log("REQ INQ ACC GW");
         console.log(req.body);
@@ -752,6 +752,48 @@ const inquiry_account = async (req, res) => {
                     rrn: rrn,
                     data: acct[0],
                 });
+
+            }
+        } else if (trx_code == "0600") {
+            let acct = await db.sequelize.query(
+                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status = '1'`,
+                {
+                    replacements: [bpr_id, no_hp, no_rek],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Belum Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                let [results, metadata] = await db.sequelize.query(
+                    `UPDATE acct_ebpr SET mpin = ? WHERE user_id = ? AND no_hp = ? AND no_rek = ?`,
+                    {
+                      replacements: [pin, acct[0].user_id, no_hp, no_rek],
+                    }
+                );
+                console.log(metadata.rowCount);
+                if (!metadata.rowCount) {
+                res.status(200).send({
+                    code: "002",
+                    status: "ok",
+                    message: "Gagal Update Mpin",
+                    data: null,
+                });
+                } else {
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
+                }
 
             }
         }
