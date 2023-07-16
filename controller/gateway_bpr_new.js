@@ -766,7 +766,7 @@ const inquiry_account = async (req, res) => {
                 res.status(200).send({
                     code: "003",
                     status: "Failed",
-                    message: "Gagal, Akun Belum Terdaftar",
+                    message: "Gagal, Akun Tidak Terdaftar",
                     rrn: rrn,
                     data: null,
                 });
