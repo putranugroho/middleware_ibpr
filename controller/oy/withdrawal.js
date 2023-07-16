@@ -435,7 +435,7 @@ const release_withdrawal = async (req, res) => {
                 } else if (bpr_id !== get_atm[0].bpr_id) {
                     keterangan = "issuer"
                 }
-                if (bpr_id != "601001") {
+                if (bpr_id != "600931") {
                     if (data.KODETRX.substring(0, 2) == "88") {
                         let requestData = {
                             "partner_id": "mtd",
