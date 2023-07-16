@@ -730,9 +730,9 @@ const inquiry_account = async (req, res) => {
             }
         } else if (trx_code == "0500") {
             let acct = await db.sequelize.query(
-                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND user_id = ? AND status = '1'`,
                 {
-                    replacements: [bpr_id, no_hp],
+                    replacements: [no_rek, no_hp, user_id],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -740,25 +740,36 @@ const inquiry_account = async (req, res) => {
                 res.status(200).send({
                     code: "003",
                     status: "Failed",
-                    message: "Gagal, Akun Belum Terdaftar",
+                    message: "Gagal, Akun Tidak Terdaftar",
                     rrn: rrn,
                     data: null,
                 });
             } else {
-                res.status(200).send({
-                    code: "000",
-                    status: "ok",
-                    message: "Success",
-                    rrn: rrn,
-                    data: acct[0],
-                });
+                if (acct[0].mpin === pin) {
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
+                } else {
+                    res.status(200).send({
+                        code: "003",
+                        status: "Failed",
+                        message: "Gagal, MPin Salah",
+                        rrn: rrn,
+                        data: null,
+                    });
+                }
 
             }
         } else if (trx_code == "0600") {
+            console.log("REQ UPDATE MPIN");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE user_id = ? AND no_hp = ? AND no_rek = ? AND status = '1'`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek],
+                    replacements: [user_id, no_hp, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
