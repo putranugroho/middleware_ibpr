@@ -772,9 +772,9 @@ const inquiry_account = async (req, res) => {
                 });
             } else {
                 let [results, metadata] = await db.sequelize.query(
-                    `UPDATE acct_ebpr SET mpin = ? WHERE user_id = ? AND no_hp = ? AND no_rek = ?`,
+                    `UPDATE cms_acct_ebpr SET mpin = ? WHERE user_id = ? AND no_hp = ? AND no_rek = ?`,
                     {
-                      replacements: [pin, acct[0].user_id, no_hp, no_rek],
+                      replacements: [pin, user_id, no_hp, no_rek],
                     }
                 );
                 console.log(metadata.rowCount);
