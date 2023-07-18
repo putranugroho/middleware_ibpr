@@ -770,7 +770,7 @@ const inquiry_account = async (req, res) => {
         } else if (trx_code == "0600") {
             console.log("REQ UPDATE MPIN");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE AND no_hp = ? AND no_rek = ? AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE no_hp = ? AND no_rek = ? AND status = '1'`,
                 {
                     replacements: [no_hp, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
@@ -786,7 +786,7 @@ const inquiry_account = async (req, res) => {
                 });
             } else {
                 let [results, metadata] = await db.sequelize.query(
-                    `UPDATE cms_acct_ebpr SET mpin = ? WHERE AND no_hp = ? AND no_rek = ?`,
+                    `UPDATE cms_acct_ebpr SET mpin = ? WHERE no_hp = ? AND no_rek = ?`,
                     {
                       replacements: [pin, no_hp, no_rek],
                     }
