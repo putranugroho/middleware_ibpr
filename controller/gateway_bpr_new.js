@@ -733,7 +733,7 @@ const inquiry_account = async (req, res) => {
         } else if (trx_code == "0500") {
             console.log("REQ VALIDATE NO_HP AND NO_REK");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND status = '1'`,
                 {
                     replacements: [no_rek, no_hp],
                     type: db.sequelize.QueryTypes.SELECT,
