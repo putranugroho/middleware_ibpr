@@ -444,7 +444,7 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                if (acct[0].status == "1") {
+                if (acct[0].status != "0" && acct[0].status == "4") {
                     res.status(200).send({
                         code: "003",
                         status: "Failed",
@@ -466,6 +466,7 @@ const inquiry_account = async (req, res) => {
                 }
             }
         } else if (trx_code == "0200") {
+            console.log("REQ ACTIVATE ACCOUNT");
             let acct = await db.sequelize.query(
                 `SELECT bpr_id, no_hp, no_rek, nama_rek, mpin, mpin_salah, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
                 {
@@ -575,6 +576,7 @@ const inquiry_account = async (req, res) => {
                 }
             }
         } else if (trx_code == "0300") {
+            console.log("REQ SALDO");
             let gl = await db.sequelize.query(
                 `SELECT * FROM master_kd_acct`,
                 {
@@ -729,10 +731,11 @@ const inquiry_account = async (req, res) => {
                 }
             }
         } else if (trx_code == "0500") {
+            console.log("REQ VALIDATE NO_HP AND NO_REK");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND user_id = ? AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND AND status = '1'`,
                 {
-                    replacements: [no_rek, no_hp, user_id],
+                    replacements: [no_rek, no_hp],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -767,9 +770,9 @@ const inquiry_account = async (req, res) => {
         } else if (trx_code == "0600") {
             console.log("REQ UPDATE MPIN");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE user_id = ? AND no_hp = ? AND no_rek = ? AND status = '1'`,
+                `SELECT * FROM cms_acct_ebpr WHERE AND no_hp = ? AND no_rek = ? AND status = '1'`,
                 {
-                    replacements: [user_id, no_hp, no_rek],
+                    replacements: [no_hp, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -783,9 +786,9 @@ const inquiry_account = async (req, res) => {
                 });
             } else {
                 let [results, metadata] = await db.sequelize.query(
-                    `UPDATE cms_acct_ebpr SET mpin = ? WHERE user_id = ? AND no_hp = ? AND no_rek = ?`,
+                    `UPDATE cms_acct_ebpr SET mpin = ? WHERE AND no_hp = ? AND no_rek = ?`,
                     {
-                      replacements: [pin, user_id, no_hp, no_rek],
+                      replacements: [pin, no_hp, no_rek],
                     }
                 );
                 console.log(metadata.rowCount);

@@ -1,4 +1,5 @@
 const db = require("../connection");
+const db1 = require("../connection/ibprdev");
 const axios = require("axios").default;
 const moment = require("moment");
 moment.locale("id");
@@ -704,6 +705,62 @@ const list_atm = async (req, res) => {
     }
 };
 
+const user_status = async (req, res) => {
+    let {no_hp, no_rek, status} = req.body;
+    try {
+        let account = await db1.sequelize.query(
+        `SELECT * FROM acct_ebpr WHERE no_hp = ? AND no_rek = ?`,
+        {
+          replacements: [no_hp, no_rek],
+          type: db.sequelize.QueryTypes.SELECT,
+        }
+        );
+        if (!account.length) {
+            res.status(200).send({
+            code: "001",
+            status: "ok",
+            message: "Nama Pengguna salah",
+            data: null,
+            });
+        } else {
+            let [results, metadata] = await db1.sequelize.query(
+                `UPDATE acct_ebpr SET status = ? WHERE no_hp = ? AND no_rek = ?`,
+                {
+                replacements: [status, no_hp, no_rek],
+                }
+            );
+            console.log(metadata.rowCount);
+            if (!metadata.rowCount) {
+                res.status(200).send({
+                code: "002",
+                status: "ok",
+                message: "Gagal Update Status",
+                data: null,
+                });
+            } else {
+                res.status(200).send({
+                code: "000",
+                status: "ok",
+                message: "Update Status Berhasil",
+                data: {
+                    no_hp: account[0]["no_hp"],
+                    no_rek: account[0]["no_rek"],
+                    status,
+                  },
+                });
+            }
+        }
+    } catch (error) {
+      //--error server--//
+      console.log("erro get product", error);
+        res.status(200).send({
+            code: "099",
+            status: "Failed",
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     list_bpr,
     get_gl,
@@ -711,5 +768,6 @@ module.exports = {
     all_trans,
     get_konsol,
     list_atm,
-    release_status
+    release_status,
+    user_status
 }
