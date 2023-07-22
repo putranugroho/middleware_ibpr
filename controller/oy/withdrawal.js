@@ -1522,7 +1522,7 @@ const release_withdrawal = async (req, res) => {
                                 const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
                                 console.log("data_nasabah");
                                 console.log(data_nasabah);
-                                const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
+                                const nasabah = await connect_axios(bpr[0].gateway, "gateway_bpr/inquiry_account", data_nasabah)
                                 console.log("Inquiry account");
                                 console.log(nasabah);
                                 let cek_hold_dana = await db1.sequelize.query(
@@ -1551,7 +1551,7 @@ const release_withdrawal = async (req, res) => {
                                         const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
                                         console.log("data_request Transaksi");
                                         console.log(data_request);
-                                        request = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/withdrawal", data_request)
+                                        request = await connect_axios(bpr[0].gateway, "gateway_bpr/withdrawal", data_request)
                                         console.log("request tartun");
                                         console.log(request);
                                         if (request.code !== "000") {
@@ -1639,7 +1639,7 @@ const release_withdrawal = async (req, res) => {
                                         const data_request = { no_hp, bpr_id: "600931", no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
                                         console.log("data_request Reversal");
                                         console.log(data_request);
-                                        request = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/withdrawal", data_request)
+                                        request = await connect_axios(bpr[0].gateway, "gateway_bpr/withdrawal", data_request)
                                         console.log("request");
                                         console.log(request);
                                         if (request.code !== "000") {
@@ -1747,7 +1747,7 @@ const release_withdrawal = async (req, res) => {
                                     let nilai = formatRibuan(cek_hold_dana[0].amount)
                                     nominal = nominal.substring(nominal.length-12, nominal.length)
                                     const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
-                                    const nasabah = await connect_axios(process.env.URL_GATEWAY, "gateway_bpr/inquiry_account", data_nasabah)
+                                    const nasabah = await connect_axios(bpr[0].gateway, "gateway_bpr/inquiry_account", data_nasabah)
                                     console.log("Inquiry account");
                                     console.log(nasabah)
                                     // response = await error_response(data,response,nominal,null,`NAMA  = ${kartu[0].nama_rek}`,`NILAI = Rp. ${nilai}`,null,null,null,"00","Transaksi Berhasil")
