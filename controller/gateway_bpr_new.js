@@ -731,11 +731,11 @@ const inquiry_account = async (req, res) => {
                 }
             }
         } else if (trx_code == "0500") {
-            console.log("REQ VALIDATE NO_HP AND NO_REK");
+            console.log("REQ VALIDATE NO_HP");
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND status = '1'`,
+                `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND status = '1'`,
                 {
-                    replacements: [no_rek, no_hp],
+                    replacements: [bpr_id, no_hp],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -748,24 +748,13 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                if (acct[0].mpin === pin) {
-                    res.status(200).send({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: acct[0],
-                    });
-                } else {
-                    res.status(200).send({
-                        code: "003",
-                        status: "Failed",
-                        message: "Gagal, MPin Salah",
-                        rrn: rrn,
-                        data: null,
-                    });
-                }
-
+                res.status(200).send({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    rrn: rrn,
+                    data: acct[0],
+                });
             }
         } else if (trx_code == "0600") {
             console.log("REQ UPDATE MPIN");
@@ -806,6 +795,43 @@ const inquiry_account = async (req, res) => {
                         message: "Success",
                         rrn: rrn,
                         data: acct[0],
+                    });
+                }
+
+            }
+        } else if (trx_code == "0700") {
+            console.log("REQ VALIDATE NO_HP AND NO_REK");
+            let acct = await db.sequelize.query(
+                `SELECT * FROM cms_acct_ebpr WHERE no_rek = ? AND no_hp = ? AND status = '1'`,
+                {
+                    replacements: [no_rek, no_hp],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Tidak Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                if (acct[0].mpin === pin) {
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
+                } else {
+                    res.status(200).send({
+                        code: "003",
+                        status: "Failed",
+                        message: "Gagal, MPin Salah",
+                        rrn: rrn,
+                        data: null,
                     });
                 }
 
