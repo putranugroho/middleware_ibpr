@@ -1494,7 +1494,7 @@ const release_withdrawal = async (req, res) => {
                     }   
                 } else {
                     bpr_id = "600931"
-                    let check_bpr = await db1.sequelize.query(
+                    let check_bpr = await db.sequelize.query(
                         `SELECT bpr_id, nama_bpr FROM kd_bpr WHERE bpr_id = ?`,
                         {
                             replacements: [bpr_id],
@@ -1745,22 +1745,29 @@ const release_withdrawal = async (req, res) => {
                                 }
                             } else if (data.KODETRX.substring(0,2) == "88") {
                                 let cek_hold_dana = await db1.sequelize.query(
-                                    `SELECT * FROM dummy_hold_dana WHERE token = ? AND status = '0'`,
+                                    `SELECT * FROM dummy_hold_dana WHERE token = ?`,
                                     {
                                     replacements: [
                                         data.OTP
                                     ],
                                     type: db1.sequelize.QueryTypes.SELECT,
                                     }
-                                );
-                                if (!cek_hold_dana.length) {
-                                    response = await error_response(data,response,"","TRANSAKSI DI TOLAK","TRANSAKSI TIDAK DITEMUKAN",null,null,null,null,null,null,null,null,null,null,null,null,null,"14","Kartu Tidak Ditemukan")
+                                ); 
+                                if (cek_hold_dana[0].status == 2) {
+                                    response = await error_response(data,response,"","TOKEN TELAH EXPIRED","TOKEN TELAH EXPIRED",null,null,null,null,null,null,null,null,null,null,null,null,null,"81","TOKEN TELAH EXPIRED")
                                     await send_log(data,response)
                                     console.log(response); 
                                     res.status(200).send(
                                     response,
                                     );
-                                } else {
+                                } else if (cek_hold_dana[0].status == 1) {
+                                    response = await error_response(data,response,"","TOKEN TELAH DIGUNAKAN","TOKEN TELAH DIGUNAKAN",null,null,null,null,null,null,null,null,null,null,null,null,null,"81","TOKEN TELAH DIGUNAKAN")
+                                    await send_log(data,response)
+                                    console.log(response); 
+                                    res.status(200).send(
+                                    response,
+                                    );
+                                } else if (cek_hold_dana[0].status == 0) {
                                     let nominal = `00000000000${cek_hold_dana[0].amount}00`
                                     let nilai = formatRibuan(cek_hold_dana[0].amount)
                                     nominal = nominal.substring(nominal.length-12, nominal.length)
