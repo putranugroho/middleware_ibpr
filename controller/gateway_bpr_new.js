@@ -34,7 +34,6 @@ function generateNumber(length) {
     return result;
 }
 
-
 const connect_axios = async (url, route, data) => {
     try {
         let Result = ""
@@ -862,23 +861,20 @@ const inquiry_account = async (req, res) => {
                     data: null,
                 });
             } else {
-                    acct[0]["tgl_trans"] = tgl_trans
-                    acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
-                    acct[0]["rrn"] = rrn
-                    console.log({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: acct[0],
-                    });
-                    res.status(200).send({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: acct[0],
-                    });
+                console.log({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    rrn: rrn,
+                    data: acct[0],
+                });
+                res.status(200).send({
+                    code: "000",
+                    status: "ok",
+                    message: "Success",
+                    rrn: rrn,
+                    data: acct[0],
+                });
             }
         }
     } catch (error) {
