@@ -839,7 +839,7 @@ const inquiry_account = async (req, res) => {
         } else if (trx_code == "0800") {
             console.log("REQ VALIDATE NO_KTP");
             let acct = await db.sequelize.query(
-                `SELECT bpr_id, no_hp, no_rek, nama_rek, no_ktp, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_ktp = ? AND status = '0'`,
+                `SELECT bpr_id, no_hp, no_rek, nama_rek AS nama, no_ktp, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_ktp = ? AND status = '0'`,
                 {
                     replacements: [bpr_id, no_ktp],
                     type: db.sequelize.QueryTypes.SELECT,
