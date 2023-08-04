@@ -414,7 +414,7 @@ const url = process.env.CORE_URL//"https://gateway-devapi.medtransdigital.com/"
 
 // API untuk Inquiry Account
 const inquiry_account = async (req, res) => {
-    let { user_id, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
+    let { no_ktp, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
     try {
         console.log("REQ INQ ACC GW");
         console.log(req.body);
