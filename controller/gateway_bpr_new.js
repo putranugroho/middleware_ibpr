@@ -865,14 +865,12 @@ const inquiry_account = async (req, res) => {
                     code: "000",
                     status: "ok",
                     message: "Success",
-                    rrn: rrn,
                     data: acct[0],
                 });
                 res.status(200).send({
                     code: "000",
                     status: "ok",
                     message: "Success",
-                    rrn: rrn,
                     data: acct[0],
                 });
             }
