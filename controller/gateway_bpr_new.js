@@ -610,6 +610,7 @@ const inquiry_account = async (req, res) => {
                 });
             }
         } else if (trx_code == "0400") {
+            console.log("REQ VALIDATE NO_REK");
             let acct = await db.sequelize.query(
                 `SELECT status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_rek = ? AND status = '1' `,
                 {
@@ -835,6 +836,49 @@ const inquiry_account = async (req, res) => {
                     });
                 }
 
+            }
+        } else if (trx_code == "0800") {
+            console.log("REQ VALIDATE NO_KTP");
+            let acct = await db.sequelize.query(
+                `SELECT bpr_id, no_hp, no_rek, nama_rek, no_ktp, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_ktp = ? AND status = '0'`,
+                {
+                    replacements: [bpr_id, no_ktp],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                console.log({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Nomer KTP Tidak Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Nomer KTP Tidak Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                    acct[0]["tgl_trans"] = tgl_trans
+                    acct[0]["tgl_transmis"] = moment().format('YYMMDDHHmmss')
+                    acct[0]["rrn"] = rrn
+                    console.log({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: acct[0],
+                    });
             }
         }
     } catch (error) {
