@@ -1821,25 +1821,25 @@ const withdrawal = async (req, res) => {
                         counter_transaksi = parseInt(check_status[0].tariktunai)
                         if (amount == undefined) amount = 0
                         if (trans_fee == undefined) trans_fee = 0
-                        const total = parseInt(trans_fee) + parseInt(amount)
-                        if (total <= limit_trx) {
-                            if (counter_transaksi + total <= limit_harian) {
-                                let get_nosbb = await db.sequelize.query(
-                                    `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
-                                    {
-                                        replacements: [trx_code, bpr_id],
-                                        type: db.sequelize.QueryTypes.SELECT,
-                                    }
-                                );
-                                if (!get_nosbb.length) {
-                                    res.status(200).send({
-                                        code: "004",
-                                        status: "Failed",
-                                        message: "Gagal, Terjadi Kesalahan Pencarian Ledger!!!",
-                                        data: null,
-                                    });
-                                } else {
-                                    if (trx_type == "TRX") {
+                        const total = parseInt(trans_fee) + parseInt(amount)      
+                        if (trx_type == "TRX") {
+                            if (total <= limit_trx) {
+                                if (counter_transaksi + total <= limit_harian) {
+                                    let get_nosbb = await db.sequelize.query(
+                                        `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
+                                        {
+                                            replacements: [trx_code, bpr_id],
+                                            type: db.sequelize.QueryTypes.SELECT,
+                                        }
+                                    );
+                                    if (!get_nosbb.length) {
+                                        res.status(200).send({
+                                            code: "004",
+                                            status: "Failed",
+                                            message: "Gagal, Terjadi Kesalahan Pencarian Ledger!!!",
+                                            data: null,
+                                        });
+                                    } else {
                                         let status_core = await db.sequelize.query(
                                             `SELECT * FROM status_core WHERE bpr_id = ?`,
                                             {
@@ -1961,148 +1961,148 @@ const withdrawal = async (req, res) => {
                                                     // }
                                                 }
                                             }
-                                        }
-                                    } else if (trx_type === "REV") {
-                                        let status_core = await db.sequelize.query(
-                                            `SELECT * FROM status_core WHERE bpr_id = ?`,
-                                            {
-                                                replacements: [bpr_id],
-                                                type: db.sequelize.QueryTypes.SELECT,
-                                            }
-                                        );
-                                        let nosbb = await split_sbb(get_nosbb, trx_code)
-                                        console.log(keterangan);
-                                        const data_core = {
-                                            no_hp,
-                                            bpr_id,
-                                            no_rek,
-                                            trx_code,
-                                            trx_type,
-                                            amount,
-                                            trans_fee,
-                                            keterangan,
-                                            token: "",
-                                            acq_id: "",
-                                            terminal_id: "",
-                                            lokasi: "",
-                                            tgl_trans,
-                                            tgl_transmis: moment().format('YYMMDDHHmmss'),
-                                            rrn,
-                                            data: {
-                                                gl_rek_db_1: nosbb.no_pokok.nosbb_cr,
-                                                gl_jns_db_1: nosbb.no_pokok.jns_sbb_cr,
-                                                gl_amount_db_1: amount,
-                                                gl_rek_db_2: nosbb.no_fee.nosbb_cr,
-                                                gl_jns_db_2: nosbb.no_fee.jns_sbb_cr,
-                                                gl_amount_db_2: trans_fee,
-                                                gl_rek_cr_1: no_rek,
-                                                gl_jns_cr_1: "2",
-                                                gl_amount_cr_1: amount,
-                                                gl_rek_cr_2: no_rek,
-                                                gl_jns_cr_2: "2",
-                                                gl_amount_cr_2: trans_fee,
-                                            }
-                                        }
-                                        if (status_core.status == "0") {
-                                            let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
-                                                `INSERT INTO hold_transaction (data) VALUES (?)`,
-                                                {
-                                                    replacements: [
-                                                        JSON.stringify(data_core),
-                                                    ],
-                                                }
-                                            );
-                                            console.log("Success");
-                                            res.status(200).send({
-                                                code: "000",
-                                                status: "ok",
-                                                message: "Success",
-                                                data: req.body,
-                                            });
-                                        } else {
-                                            const request = await connect_axios(url, "tariktunai", data_core)
-                                            let [results, metadata] = await db.sequelize.query(
-                                                `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
-                                                {
-                                                    replacements: [request.code, request.message, no_rek, no_hp, bpr_id, amount, trans_fee, tgl_trans, rrn],
-                                                }
-                                            );
-                                            if (request.code !== "000") {
-                                                console.log(request);
-                                                res.status(200).send(request);
-                                            } else {
-                                                const detail_trans = {
-                                                    no_rek,
-                                                    nama_rek,
-                                                    no_hp,
-                                                    keterangan,
-                                                    tgl_trans: moment().format('YYYY-MM-DD HH:mm:ss'),
-                                                    trx_type,
-                                                    status: "R",
-                                                    tcode: "000",
-                                                    noreff: request.data.noreff,
-                                                    rrn
-                                                }
-                                                await update_gl_oy_debet(
-                                                    amount,
-                                                    trans_fee,
-                                                    bpr_id,
-                                                    trx_code,
-                                                    nosbb.no_pokok.nosbb_cr,
-                                                    nosbb.no_fee.nosbb_cr,
-                                                    nosbb.no_pokok.nmsbb_cr,
-                                                    nosbb.no_fee.nmsbb_cr,
-                                                    detail_trans
-                                                )
-                                                let [results, metadata] = await db.sequelize.query(
-                                                    `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
-                                                    {
-                                                        replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
-                                                    }
-                                                );
-                                                if (!metadata) {
-                                                    console.log({
-                                                        code: "001",
-                                                        status: "Failed",
-                                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                                        data: null,
-                                                    });
-                                                    res.status(200).send({
-                                                        code: "001",
-                                                        status: "Failed",
-                                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                                        data: null,
-                                                    });
-                                                } else {
-                                                    request.data['keterangan'] = keterangan
-                                                    //--berhasil dapat list product update atau insert ke db --//
-                                                    console.log("Success");
-                                                    res.status(200).send({
-                                                        code: "000",
-                                                        status: "ok",
-                                                        message: "Success",
-                                                        data: request.data,
-                                                    });
-                                                }
-                                            }
-                                        }
+                                        }                                    
                                     }
+                                } else {
+                                    res.status(200).send({
+                                        code: "009",
+                                        status: "Failed",
+                                        message: "Gagal, Transaksi Sudah Melebihi Limit Harian!!!",
+                                        data: null,
+                                    });
                                 }
                             } else {
                                 res.status(200).send({
                                     code: "009",
                                     status: "Failed",
-                                    message: "Gagal, Transaksi Sudah Melebihi Limit Harian!!!",
+                                    message: "Gagal, Nominal Melebihi Limit Transaksi!!!",
                                     data: null,
                                 });
                             }
-                        } else {
-                            res.status(200).send({
-                                code: "009",
-                                status: "Failed",
-                                message: "Gagal, Nominal Melebihi Limit Transaksi!!!",
-                                data: null,
-                            });
+                        } else if (trx_type === "REV") {
+                            let status_core = await db.sequelize.query(
+                                `SELECT * FROM status_core WHERE bpr_id = ?`,
+                                {
+                                    replacements: [bpr_id],
+                                    type: db.sequelize.QueryTypes.SELECT,
+                                }
+                            );
+                            let nosbb = await split_sbb(get_nosbb, trx_code)
+                            console.log(keterangan);
+                            const data_core = {
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                trx_code,
+                                trx_type,
+                                amount,
+                                trans_fee,
+                                keterangan,
+                                token: "",
+                                acq_id: "",
+                                terminal_id: "",
+                                lokasi: "",
+                                tgl_trans,
+                                tgl_transmis: moment().format('YYMMDDHHmmss'),
+                                rrn,
+                                data: {
+                                    gl_rek_db_1: nosbb.no_pokok.nosbb_cr,
+                                    gl_jns_db_1: nosbb.no_pokok.jns_sbb_cr,
+                                    gl_amount_db_1: amount,
+                                    gl_rek_db_2: nosbb.no_fee.nosbb_cr,
+                                    gl_jns_db_2: nosbb.no_fee.jns_sbb_cr,
+                                    gl_amount_db_2: trans_fee,
+                                    gl_rek_cr_1: no_rek,
+                                    gl_jns_cr_1: "2",
+                                    gl_amount_cr_1: amount,
+                                    gl_rek_cr_2: no_rek,
+                                    gl_jns_cr_2: "2",
+                                    gl_amount_cr_2: trans_fee,
+                                }
+                            }
+                            if (status_core.status == "0") {
+                                let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
+                                    `INSERT INTO hold_transaction (data) VALUES (?)`,
+                                    {
+                                        replacements: [
+                                            JSON.stringify(data_core),
+                                        ],
+                                    }
+                                );
+                                console.log("Success");
+                                res.status(200).send({
+                                    code: "000",
+                                    status: "ok",
+                                    message: "Success",
+                                    data: req.body,
+                                });
+                            } else {
+                                const request = await connect_axios(url, "tariktunai", data_core)
+                                let [results, metadata] = await db.sequelize.query(
+                                    `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
+                                    {
+                                        replacements: [request.code, request.message, no_rek, no_hp, bpr_id, amount, trans_fee, tgl_trans, rrn],
+                                    }
+                                );
+                                if (request.code !== "000") {
+                                    console.log(request);
+                                    res.status(200).send(request);
+                                } else {
+                                    const detail_trans = {
+                                        no_rek,
+                                        nama_rek,
+                                        no_hp,
+                                        keterangan,
+                                        tgl_trans: moment().format('YYYY-MM-DD HH:mm:ss'),
+                                        trx_type,
+                                        status: "R",
+                                        tcode: "000",
+                                        noreff: request.data.noreff,
+                                        rrn
+                                    }
+                                    await update_gl_oy_debet(
+                                        amount,
+                                        trans_fee,
+                                        bpr_id,
+                                        trx_code,
+                                        nosbb.no_pokok.nosbb_cr,
+                                        nosbb.no_fee.nosbb_cr,
+                                        nosbb.no_pokok.nmsbb_cr,
+                                        nosbb.no_fee.nmsbb_cr,
+                                        detail_trans
+                                    )
+                                    let [results, metadata] = await db.sequelize.query(
+                                        `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                                        {
+                                            replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
+                                        }
+                                    );
+                                    if (!metadata) {
+                                        console.log({
+                                            code: "001",
+                                            status: "Failed",
+                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                            data: null,
+                                        });
+                                        res.status(200).send({
+                                            code: "001",
+                                            status: "Failed",
+                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                            data: null,
+                                        });
+                                    } else {
+                                        request.data['keterangan'] = keterangan
+                                        //--berhasil dapat list product update atau insert ke db --//
+                                        console.log("Success");
+                                        res.status(200).send({
+                                            code: "000",
+                                            status: "ok",
+                                            message: "Success",
+                                            data: request.data,
+                                        });
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
