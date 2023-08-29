@@ -1,5 +1,6 @@
 const axios = require("axios").default;
 const router = require('express').Router()
+const schedule = require('node-schedule');
 const {
     encryptStringWithRsaPublicKey,
     decryptStringWithRsaPrivateKey,
@@ -3258,6 +3259,48 @@ const sign_in_off = async (req, res) => {
         res.send(error);
     }
 }
+
+
+
+schedule.scheduleJob('* * * * *', async function () {
+    let date_now = moment().format('YYYY-MM-DD HH:mm:ss')
+    let timestamp = await db.sequelize.query(
+      `SELECT * FROM timetable WHERE type = 'limit'`,
+      {
+        type: db.sequelize.QueryTypes.SELECT,
+      }
+    );
+    console.log(date_now);
+    let date_reset = moment(timestamp[0].time).add(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+    console.log(date_reset);
+    if (date_now > date_reset) {
+        let account = await db.sequelize.query(
+            `SELECT * FROM cms_acct_ebpr WHERE status = '1'`,
+            {
+            type: db.sequelize.QueryTypes.SELECT,
+            }
+        );
+        for (let i = 0; i < account.length; i++) {
+            let [results2, metadata2] = await db.sequelize.query(
+            `UPDATE cms_acct_ebpr SET tariktunai = '0', transfer = '0', pindah_buku = '0', ppob = '0', ppob_bayar = '0' WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
+            {
+            replacements: [
+                account[i].user_id, account[i].no_hp, account[i].bpr_id
+            ],
+            }
+            );
+            console.count(" Task Done account @" + date_now);
+        }
+        let [results, metadata] = await db.sequelize.query(
+            `UPDATE timetable SET time = ? WHERE type = 'limit'`,
+            {
+            replacements: [
+                date_reset
+            ],
+            }
+        );
+    }
+})
 
 module.exports = {
     inquiry_account,
