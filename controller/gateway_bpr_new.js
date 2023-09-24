@@ -71,6 +71,46 @@ const connect_axios = async (url, route, data) => {
     }
 }
 
+const connect_keeping = async (url, route, data) => {
+    try {
+        let Result = ""
+        console.log(`${url}${route}`);
+        console.log("DATA API KEEPING");
+        console.log(data);
+        await axios({
+            headers:{
+                "x-username":"MTD@202312",
+                "x-password":"MTD@990876"
+            },
+            method: 'post',
+            url: `${url}${route}`,
+            timeout: 25000, //milisecond
+            data
+        }).then(res => {
+            Result = res.data
+        }).catch(error => {
+            console.log("error Core");
+            // console.log(error);
+            if (error.code == 'ECONNABORTED') {
+                Result = {
+                    code: "088",
+                    status: "ECONNABORTED",
+                    message: "Core Connection Timeout"
+                }
+            } else {
+                Result = error
+            }
+        });
+        return Result
+    } catch (error) {
+        res.status(200).send({
+            code: "099",
+            status: "Failed",
+            message: error.message
+        });
+    }
+}
+
 async function update_gl_oy_kredit(
     amount,
     trans_fee,
@@ -415,7 +455,7 @@ const url = process.env.CORE_URL//"https://gateway-devapi.medtransdigital.com/"
 
 // API untuk Inquiry Account
 const inquiry_account = async (req, res) => {
-    let { no_ktp, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, tgl_transmis, rrn } = req.body;
+    let { no_ktp, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, user_id, password, tgl_transmis, rrn } = req.body;
     try {
         console.log("REQ INQ ACC GW");
         console.log(req.body);
@@ -468,7 +508,7 @@ const inquiry_account = async (req, res) => {
         } else if (trx_code == "0200") {
             console.log("REQ ACTIVATE ACCOUNT");
             let acct = await db.sequelize.query(
-                `SELECT bpr_id, no_hp, no_rek, nama_rek, mpin, mpin_salah, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
+                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
                 {
                     replacements: [bpr_id, no_hp, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
@@ -874,6 +914,139 @@ const inquiry_account = async (req, res) => {
                     message: "Success",
                     data: acct[0],
                 });
+            }
+        } else if (trx_code == "0900") {
+            console.log("REQ ACTIVATE ACCOUNT KEEPING");
+            console.log("tanggal lahir, gender, email");
+            let acct = await db.sequelize.query(
+                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND no_ktp = ? AND status != '6'`,
+                {
+                    replacements: [bpr_id, no_hp, no_rek],
+                    type: db.sequelize.QueryTypes.SELECT,
+                }
+            )
+            if (!acct.length) {
+                console.log({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Tidak Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+                res.status(200).send({
+                    code: "003",
+                    status: "Failed",
+                    message: "Gagal, Akun Tidak Terdaftar",
+                    rrn: rrn,
+                    data: null,
+                });
+            } else {
+                let mpin_salah = parseInt(acct[0].mpin_salah)
+  
+                if (mpin_salah == 3 && acct[0].status == 2) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, mPIN Terblokir!!!",
+                        data: null,
+                    });
+                } else if (mpin_salah != 3 && acct[0].status == 2) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Anda Telah diBlokir!!!",
+                        data: null,
+                    });
+                } else if (acct[0].mpin == pin) {
+                    const data = {
+                        token: "715f8ab555438f985b579844ea998866",
+                        nama_lengkap: acct[0].nama,
+                        nomor_ponsel: acct[0].no_hp,
+                        email: acct[0].email,
+                        tgl_lahir: "1989-07-22",
+                        jk: "L",
+                        username: user_id,
+                        password: password
+                    };
+                    console.log(data);
+                    const request = await connect_keeping(
+                        "https//api.keeping.digital/",
+                        "registrasi-nasabah",
+                        data
+                    );
+                    if (request.message != "Berhasil") {
+                        console.log("failed gateway");
+                        console.log(request);
+                        res.status(200).send(request);
+                    } else {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET status = ?, mpin_salah = '0' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                            {
+                                replacements: [status, no_rek, no_hp, bpr_id]
+                            }
+                        );
+                        if (!metadata) {
+                            console.log({
+                                code: "001",
+                                status: "Failed",
+                                message: "Gagal, Merubah Status Akun!!!",
+                                rrn: rrn,
+                                data: null,
+                            });
+                            res.status(200).send({
+                                code: "001",
+                                status: "Failed",
+                                message: "Gagal, Merubah Status Akun!!!",
+                                rrn: rrn,
+                                data: null,
+                            });
+                        } else {
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: acct[0],
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: acct[0],
+                            });
+                        }
+                    }
+                } else {
+                    mpin_salah = mpin_salah + 1
+                    if (mpin_salah == 3) {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ?, status = '2'  WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "007",
+                            status: "Failed",
+                            message: "Gagal, mPIN Terblokir!!!",
+                            data: null,
+                        });
+                    } else {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ? WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "003",
+                            status: "Failed",
+                            message: "Gagal, Pin Anda Salah!!!",
+                            data: null,
+                        });
+                    }
+                }
             }
         }
     } catch (error) {
