@@ -63,24 +63,22 @@ const connect_axios = async (url, route, data) => {
         });
         return Result
     } catch (error) {
-        res.status(200).send({
-            code: "099",
-            status: "Failed",
-            message: error.message
-        });
+        console.log(error);
+        return error
     }
 }
 
-const connect_keeping = async (url, route, data) => {
+const connect_keeping = async (url, route, data, xusername, xpassword) => {
     try {
         let Result = ""
         console.log(`${url}${route}`);
         console.log("DATA API KEEPING");
         console.log(data);
         await axios({
-            headers:{
-                "x-username":"MTD@202312",
-                "x-password":"MTD@990876"
+            headers: {
+              "Content-Type": "application/json",
+              "x-username":xusername,
+              "x-password":xpassword
             },
             method: 'post',
             url: `${url}${route}`,
@@ -103,11 +101,8 @@ const connect_keeping = async (url, route, data) => {
         });
         return Result
     } catch (error) {
-        res.status(200).send({
-            code: "099",
-            status: "Failed",
-            message: error.message
-        });
+        console.log(error);
+        return error
     }
 }
 
@@ -455,7 +450,7 @@ const url = process.env.CORE_URL//"https://gateway-devapi.medtransdigital.com/"
 
 // API untuk Inquiry Account
 const inquiry_account = async (req, res) => {
-    let { no_ktp, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, user_id, password, tgl_transmis, rrn } = req.body;
+    let { no_ktp, no_hp, no_rek, bpr_id, trx_code, trx_type, status, pin, tgl_trans, user_id, password, tgl_transmis, rrn, xusername, xpassword } = req.body;
     try {
         console.log("REQ INQ ACC GW");
         console.log(req.body);
@@ -921,7 +916,7 @@ const inquiry_account = async (req, res) => {
             let acct = await db.sequelize.query(
                 `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND no_ktp = ? AND status != '6'`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek],
+                    replacements: [bpr_id, no_hp, no_rek, no_ktp],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -966,19 +961,23 @@ const inquiry_account = async (req, res) => {
                         tgl_lahir: "1989-07-22",
                         jk: "L",
                         username: user_id,
-                        password: password
+                        password,
                     };
                     console.log(data);
                     const request = await connect_keeping(
-                        "https//api.keeping.digital/",
-                        "registrasi-nasabah",
-                        data
+                        "https://api.keeping.digital",
+                        "/registrasi-nasabah",
+                        data,
+                        xusername,
+                        xpassword
                     );
                     if (request.message != "Berhasil") {
                         console.log("failed gateway");
                         console.log(request);
                         res.status(200).send(request);
                     } else {
+                        console.log(request);
+                        acct[0].id_nasabah = request.id_nasabah
                         let [results, metadata] = await db.sequelize.query(
                             `UPDATE cms_acct_ebpr SET status = ?, mpin_salah = '0' WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
                             {
