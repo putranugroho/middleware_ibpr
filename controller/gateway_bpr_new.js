@@ -1066,7 +1066,6 @@ const transfer = async (req, res) => {
         no_hp,
         bpr_id,
         no_rek,
-        pin,
         bank_tujuan,
         rek_tujuan,
         nama_tujuan,
@@ -1090,9 +1089,9 @@ const transfer = async (req, res) => {
         );
         if (trx_code == "2100") {
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND mpin = ? AND status != '6'`,
+                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek, pin],
+                    replacements: [bpr_id, no_hp, no_rek],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
