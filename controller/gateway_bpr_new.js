@@ -1066,12 +1066,14 @@ const transfer = async (req, res) => {
         no_hp,
         bpr_id,
         no_rek,
-        nama_rek,
+        pin,
         bank_tujuan,
         rek_tujuan,
         nama_tujuan,
         amount,
         trans_fee,
+        xusername,
+        xpassword,
         trx_code,
         trx_type,
         keterangan,
@@ -1088,9 +1090,9 @@ const transfer = async (req, res) => {
         );
         if (trx_code == "2100") {
             let acct = await db.sequelize.query(
-                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
+                `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND mpin = ? AND status != '6'`,
                 {
-                    replacements: [bpr_id, no_hp, no_rek],
+                    replacements: [bpr_id, no_hp, no_rek, pin],
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             )
@@ -1185,65 +1187,134 @@ const transfer = async (req, res) => {
                                         res.status(200).send(request);
                                     // }
                                 } else {
-                                    const detail_trans = {
-                                        no_rek,
-                                        nama_rek: acct[0].nama_rek,
-                                        // nama_rek,
-                                        no_hp,
-                                        bank_tujuan,
-                                        rek_tujuan,
-                                        nama_tujuan,
-                                        keterangan,
-                                        tgl_trans: moment().format('YYYY-MM-DD HH:mm:ss'),
-                                        trx_type,
-                                        status: "1",
-                                        tcode: "000",
-                                        noreff: request.data.noreff,
-                                        rrn
-                                    }
-                                    await update_gl_oy_kredit(
+                                    const data = {
+                                        token: "715f8ab555438f985b579844ea998866",
+                                        account_number: rek_tujuan,
+                                        bank_code: bank_tujuan,
                                         amount,
-                                        trans_fee,
-                                        bpr_id,
-                                        trx_code,
-                                        nosbb.no_pokok.nosbb_cr,
-                                        nosbb.no_fee.nosbb_cr,
-                                        nosbb.no_pokok.nmsbb_cr,
-                                        nosbb.no_fee.nmsbb_cr,
-                                        detail_trans
-                                    )
-                                    let [results, metadata] = await db.sequelize.query(
-                                        `UPDATE cms_acct_ebpr SET transfer = transfer + ? + ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
-                                        {
-                                            replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
-                                        }
+                                        remark: "saldo keeping",
+                                        beneficiary_email: "nugrohopnn@gmail.com",
+                                        recipient_city: "391",
+                                    };
+                                    console.log(data);
+                                    const request = await connect_keeping(
+                                        "https://api.keeping.digital",
+                                        "/transfer",
+                                        data,
+                                        xusername,
+                                        xpassword
                                     );
-                                    if (!metadata) {
-                                        console.log({
-                                            code: "001",
-                                            status: "Failed",
-                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                            data: null,
-                                        });
-                                        res.status(200).send({
-                                            code: "001",
-                                            status: "Failed",
-                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                            data: null,
-                                        });
-                                    } else {
-                                        //--berhasil dapat list product update atau insert ke db --//
-                                        console.log("Success");
-                                        // if (bpr_id === "600998") {
-                                        //     console.log("GW Transfer Out Timeout");
-                                        // } else {
+                                    if (request.message != "Berhasil") {
+                                        const data_core_rev = {
+                                            no_hp,
+                                            bpr_id,
+                                            no_rek,
+                                            nama_rek: acct[0].nama_rek,
+                                            // nama_rek,
+                                            bank_tujuan,
+                                            nama_bank_tujuan: "",
+                                            rek_tujuan,
+                                            nama_tujuan,
+                                            amount,
+                                            trans_fee,
+                                            trx_code,
+                                            trx_type,
+                                            keterangan,
+                                            lokasi: "",
+                                            tgl_trans,
+                                            tgl_transmis: moment().format('YYMMDDHHmmss'),
+                                            rrn,
+                                            data: {
+                                                gl_rek_db_1: nosbb.no_pokok.nosbb_cr,
+                                                gl_jns_db_1: nosbb.no_pokok.jns_sbb_cr,
+                                                gl_amount_db_1: amount,
+                                                gl_rek_db_2: nosbb.no_fee.nosbb_cr,
+                                                gl_jns_db_2: nosbb.no_fee.jns_sbb_cr,
+                                                gl_amount_db_2: trans_fee,
+                                                gl_rek_cr_1: no_rek,
+                                                gl_jns_cr_1: "2",
+                                                gl_amount_cr_1: amount,
+                                                gl_rek_cr_2: no_rek,
+                                                gl_jns_cr_2: "2",
+                                                gl_amount_cr_2: trans_fee,
+                                            }
+                                        }
+                                        const request = await connect_axios(url, "transfer", data_core_rev)
+                                        if (request.code !== "000") {
+                                            console.log("failed gateway reversal");
+                                            console.log(request);
+                                            res.status(200).send(request);
+                                        } else {
+                                            //--berhasil dapat list product update atau insert ke db --//
+                                            console.log("Reversal Success");
                                             res.status(200).send({
                                                 code: "000",
                                                 status: "ok",
-                                                message: "Success",
+                                                message: "Reversal Success",
                                                 data: request.data,
                                             });
-                                        // }
+                                        }
+                                    } else {
+                                        const detail_trans = {
+                                            no_rek,
+                                            nama_rek: acct[0].nama_rek,
+                                            // nama_rek,
+                                            no_hp,
+                                            bank_tujuan,
+                                            rek_tujuan,
+                                            nama_tujuan,
+                                            keterangan,
+                                            tgl_trans: moment().format('YYYY-MM-DD HH:mm:ss'),
+                                            trx_type,
+                                            status: "1",
+                                            tcode: "000",
+                                            noreff: request.data.noreff,
+                                            rrn
+                                        }
+                                        await update_gl_oy_kredit(
+                                            amount,
+                                            trans_fee,
+                                            bpr_id,
+                                            trx_code,
+                                            nosbb.no_pokok.nosbb_cr,
+                                            nosbb.no_fee.nosbb_cr,
+                                            nosbb.no_pokok.nmsbb_cr,
+                                            nosbb.no_fee.nmsbb_cr,
+                                            detail_trans
+                                        )
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `UPDATE cms_acct_ebpr SET transfer = transfer + ? + ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                                            {
+                                                replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
+                                            }
+                                        );
+                                        if (!metadata) {
+                                            console.log({
+                                                code: "001",
+                                                status: "Failed",
+                                                message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                                data: null,
+                                            });
+                                            res.status(200).send({
+                                                code: "001",
+                                                status: "Failed",
+                                                message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                                data: null,
+                                            });
+                                        } else {
+                                            //--berhasil dapat list product update atau insert ke db --//
+                                            console.log("Success");
+                                            // if (bpr_id === "600998") {
+                                            //     console.log("GW Transfer Out Timeout");
+                                            // } else {
+                                                res.status(200).send({
+                                                    code: "000",
+                                                    status: "ok",
+                                                    message: "Success",
+                                                    data: request.data,
+                                                });
+                                            // }
+                                        }
                                     }
                                 }
                             }
@@ -2825,7 +2896,6 @@ const ppob = async (req, res) => {
         bpr_id,
         no_rek,
         product_name,
-        token_mpin,
         trx_code,
         trx_type,
         amount,
@@ -2896,7 +2966,6 @@ const ppob = async (req, res) => {
                                 bpr_id,
                                 no_rek,
                                 product_name,
-                                token_mpin,
                                 trx_code,
                                 trx_type,
                                 amount,
@@ -3434,45 +3503,45 @@ const sign_in_off = async (req, res) => {
 
 
 
-schedule.scheduleJob('* * * * *', async function () {
-    let date_now = moment().format('YYYY-MM-DD HH:mm:ss')
-    let timestamp = await db.sequelize.query(
-      `SELECT * FROM timetable WHERE type = 'limit'`,
-      {
-        type: db.sequelize.QueryTypes.SELECT,
-      }
-    );
-    console.log(date_now);
-    let date_reset = moment(timestamp[0].time).add(1, 'days').format('YYYY-MM-DD HH:mm:ss')
-    console.log(date_reset);
-    if (date_now > date_reset) {
-        let account = await db.sequelize.query(
-            `SELECT * FROM cms_acct_ebpr WHERE status = '1'`,
-            {
-            type: db.sequelize.QueryTypes.SELECT,
-            }
-        );
-        for (let i = 0; i < account.length; i++) {
-            let [results2, metadata2] = await db.sequelize.query(
-            `UPDATE cms_acct_ebpr SET tariktunai = '0', transfer = '0', pindah_buku = '0', ppob = '0', ppob_bayar = '0' WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
-            {
-            replacements: [
-                account[i].user_id, account[i].no_hp, account[i].bpr_id
-            ],
-            }
-            );
-            console.count(" Task Done account @" + date_now);
-        }
-        let [results, metadata] = await db.sequelize.query(
-            `UPDATE timetable SET time = ? WHERE type = 'limit'`,
-            {
-            replacements: [
-                date_reset
-            ],
-            }
-        );
-    }
-})
+// schedule.scheduleJob('* * * * *', async function () {
+//     let date_now = moment().format('YYYY-MM-DD HH:mm:ss')
+//     let timestamp = await db.sequelize.query(
+//       `SELECT * FROM timetable WHERE type = 'limit'`,
+//       {
+//         type: db.sequelize.QueryTypes.SELECT,
+//       }
+//     );
+//     console.log(date_now);
+//     let date_reset = moment(timestamp[0].time).add(1, 'days').format('YYYY-MM-DD HH:mm:ss')
+//     console.log(date_reset);
+//     if (date_now > date_reset) {
+//         let account = await db.sequelize.query(
+//             `SELECT * FROM cms_acct_ebpr WHERE status = '1'`,
+//             {
+//             type: db.sequelize.QueryTypes.SELECT,
+//             }
+//         );
+//         for (let i = 0; i < account.length; i++) {
+//             let [results2, metadata2] = await db.sequelize.query(
+//             `UPDATE cms_acct_ebpr SET tariktunai = '0', transfer = '0', pindah_buku = '0', ppob = '0', ppob_bayar = '0' WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
+//             {
+//             replacements: [
+//                 account[i].user_id, account[i].no_hp, account[i].bpr_id
+//             ],
+//             }
+//             );
+//             console.count(" Task Done account @" + date_now);
+//         }
+//         let [results, metadata] = await db.sequelize.query(
+//             `UPDATE timetable SET time = ? WHERE type = 'limit'`,
+//             {
+//             replacements: [
+//                 date_reset
+//             ],
+//             }
+//         );
+//     }
+// })
 
 module.exports = {
     inquiry_account,
