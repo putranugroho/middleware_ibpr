@@ -957,7 +957,7 @@ const inquiry_account = async (req, res) => {
                         token: "715f8ab555438f985b579844ea998866",
                         nama_lengkap: acct[0].nama,
                         nomor_ponsel: acct[0].no_hp,
-                        email: acct[0].email,
+                        email: "nugrohopnn@gmail.com",
                         tgl_lahir: "1989-07-22",
                         jk: "L",
                         username: user_id,
