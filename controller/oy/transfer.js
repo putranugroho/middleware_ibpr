@@ -177,7 +177,7 @@ const transfer_db_cr = async (req, res) => {
                 if (request.code !== "000") {
                     console.log("failed middleware");
                     let [results, metadata] = await db1.sequelize.query(
-                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                         {
                         replacements: [
                             no_hp,
@@ -210,7 +210,7 @@ const transfer_db_cr = async (req, res) => {
                     console.log("request.data transfer");
                     console.log(request);
                     let [results, metadata] = await db1.sequelize.query(
-                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                        `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                         {
                         replacements: [
                             no_hp,
@@ -309,7 +309,7 @@ const transfer_db_cr = async (req, res) => {
                         console.log("failed middleware");
                         console.log(request);
                         let [results, metadata] = await db1.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                             {
                             replacements: [
                                 no_hp,
@@ -343,7 +343,7 @@ const transfer_db_cr = async (req, res) => {
                         console.log("request.data transfer");
                         console.log(request);
                         let [results, metadata] = await db1.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                             {
                             replacements: [
                                 no_hp,
@@ -424,7 +424,7 @@ const check_status_trf = async (req, res) => {
             transfer = "DB CR"
         }
         let check_transaksi = await db.sequelize.query(
-            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND rrn = ? AND tgl_trans = ?`,
+            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND rrn = ? AND tgljam_trans = ?`,
             {
                 replacements: [no_rek, no_hp, bpr_id, trx_code, rrn, tgl_trans],
                 type: db.sequelize.QueryTypes.SELECT,
