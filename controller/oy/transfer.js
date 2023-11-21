@@ -294,7 +294,7 @@ const transfer_db_cr = async (req, res) => {
                         type: db.sequelize.QueryTypes.SELECT,
                     }
                 )
-                if (!request.length) {
+                if (!nasabah.length) {
                     res.status(200).send({
                         code: "999",
                         status: "ok",
