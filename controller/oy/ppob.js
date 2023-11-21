@@ -342,7 +342,6 @@ const bill_payment = async (req, res) => {
         bpr_id,
         no_rek,
         product_name,
-        token_mpin,
         trx_code,
         trx_type,
         amount,
@@ -363,7 +362,7 @@ const bill_payment = async (req, res) => {
         )
         if (!bpr.length) {
             let [results, metadata] = await db.sequelize.query(
-                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                 {
                     replacements: [
                         no_hp,
@@ -377,7 +376,6 @@ const bill_payment = async (req, res) => {
                         amount,
                         trans_fee,
                         tgl_trans,
-                        token_mpin,
                         rrn,
                         "002"
                     ],
@@ -398,113 +396,77 @@ const bill_payment = async (req, res) => {
                 data: [],
             });
         } else {
-            let check_token_mpin = await db.sequelize.query(
-                `SELECT * FROM token_mpin WHERE token_mpin = ? AND no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ?`,
-                {
-                    replacements: [token_mpin, no_rek, no_hp, bpr_id, trx_code],
-                    type: db.sequelize.QueryTypes.SELECT,
-                }
-            );
-            if (!check_token_mpin.length) {
-                res.status(200).send({
-                    code: "001",
-                    status: "ok",
-                    message: "Gagal, MPIN Belum Tervalidasi!!!",
-                    rrn: rrn,
-                    data: null,
-                });
-            } else {
-                if (check_token_mpin[0].status == "1") {
-                    res.status(200).send({
-                        code: "009",
-                        status: "ok",
-                        message: "Gagal, Token Validasi MPIN Sudah Digunakan!!!",
-                        rrn: rrn,
-                        data: null,
-                    });
-                } else if (check_token_mpin[0].status == "0") {
-                    const data = { no_hp, bpr_id, no_rek, product_name, token_mpin, trx_code, trx_type, amount, trans_fee, tgl_trans, tgl_transmis, rrn }
-                    const request = await connect_axios(bpr[0].gateway, "gateway_bpr/ppob", data)
-                    if (request.code !== "000") {
-                        console.log(request);
-                        let [results, metadata] = await db.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
-                            {
-                                replacements: [
-                                    no_hp,
-                                    bpr_id,
-                                    no_rek,
-                                    "",
-                                    trx_code,
-                                    "PPOB",
-                                    product_name,
-                                    "",
-                                    amount,
-                                    trans_fee,
-                                    tgl_trans,
-                                    token_mpin,
-                                    rrn,
-                                    request.code,
-                                    request.message,
-                                ],
-                            }
-                        );
-                        // if (bpr_id === "600001") {
-                        //     console.log("MDW PPOB TIMEOUT");
-                        // } else {
-                            res.status(200).send(request);
-                        // }
-                    } else {
-                        let [results, metadata] = await db.sequelize.query(
-                            `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, token, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
-                            {
-                                replacements: [
-                                    no_hp,
-                                    bpr_id,
-                                    no_rek,
-                                    request.data.nama,
-                                    trx_code,
-                                    "PPOB",
-                                    product_name,
-                                    request.data.noreff,
-                                    amount,
-                                    trans_fee,
-                                    tgl_trans,
-                                    token_mpin,
-                                    rrn,
-                                    request.code,
-                                    request.message
-                                ],
-                            }
-                        );
-                        // if (bpr_id !== "600001") {
-                            console.log({
-                                code: "000",
-                                status: "ok",
-                                message: "Success",
-                                rrn: rrn,
-                                data: request.data,
-                            });
-                            res.status(200).send({
-                                code: "000",
-                                status: "ok",
-                                message: "Success",
-                                rrn: rrn,
-                                data: request.data,
-                            })
-                        // } else {
-                        //     console.log("MDW PPOB TIMEOUT");
-                        // }
+            const data = { no_hp, bpr_id, no_rek, product_name, trx_code, trx_type, amount, trans_fee, tgl_trans, tgl_transmis, rrn }
+            // const request = await connect_axios(bpr[0].gateway, "gateway_bpr/ppob", data)
+            const request = await connect_axios("https://middleware-api-dev.medtransdigital.com/", "gateway_bpr/ppob", data)
+            if (request.code !== "000") {
+                console.log(request);
+                let [results, metadata] = await db.sequelize.query(
+                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
+                    {
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            "",
+                            trx_code,
+                            "PPOB",
+                            product_name,
+                            "",
+                            amount,
+                            trans_fee,
+                            tgl_trans,
+                            rrn,
+                            request.code,
+                            request.message,
+                        ],
                     }
-                } else {
-                    res.status(200).send({
-                        code: "009",
-                        status: "Failed",
-                        message: "Gagal, Invalid Transaction!!!",
+                );
+                // if (bpr_id === "600001") {
+                //     console.log("MDW PPOB TIMEOUT");
+                // } else {
+                    res.status(200).send(request);
+                // }
+            } else {
+                let [results, metadata] = await db.sequelize.query(
+                    `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgl_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
+                    {
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            request.data.nama,
+                            trx_code,
+                            "PPOB",
+                            product_name,
+                            request.data.noreff,
+                            amount,
+                            trans_fee,
+                            tgl_trans,
+                            rrn,
+                            request.code,
+                            request.message
+                        ],
+                    }
+                );
+                // if (bpr_id !== "600001") {
+                    console.log({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
                         rrn: rrn,
-                        data: null,
+                        data: request.data,
+                    });
+                    res.status(200).send({
+                        code: "000",
+                        status: "ok",
+                        message: "Success",
+                        rrn: rrn,
+                        data: request.data,
                     })
-                }
+                // } else {
+                //     console.log("MDW PPOB TIMEOUT");
+                // }
             }
         }
     } catch (error) {
