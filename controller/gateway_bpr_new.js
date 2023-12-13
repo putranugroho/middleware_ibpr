@@ -683,7 +683,7 @@ const inquiry_account = async (req, res) => {
                         console.log(request);
                         res.status(200).send(request);
                     } else {
-                        if (request.data.data[0].status_rek == "AKTIF") {
+                        if (request.data[0].status_rek == "AKTIF") {
                             console.log(
                                 {
                                     code: "000",
@@ -693,8 +693,8 @@ const inquiry_account = async (req, res) => {
                                     data: [
                                         {
                                             no_rek,
-                                            nama_rek: request.data.data[0].nama,
-                                            saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                            nama_rek: request.data[0].nama,
+                                            saldo:`${parseInt(request.data[0].saldoakhir)}`,
                                             saldo_blokir:"0",
                                             saldo_min:"50000",
                                         }
@@ -708,8 +708,8 @@ const inquiry_account = async (req, res) => {
                                 data: [
                                     {
                                         no_rek,
-                                        nama_rek: request.data.data[0].nama,
-                                        saldo:`${parseInt(request.data.data[0].saldoakhir)}`,
+                                        nama_rek: request.data[0].nama,
+                                        saldo:`${parseInt(request.data[0].saldoakhir)}`,
                                         saldo_blokir:"0",
                                         saldo_min:"50000",
                                     }
@@ -719,7 +719,7 @@ const inquiry_account = async (req, res) => {
                             res.status(200).send({
                                 code: "008",
                                 status: "Failed",
-                                message: request.data.data[0].status_rek,
+                                message: request.data[0].status_rek,
                                 rrn: rrn,
                                 data: [
                                     {

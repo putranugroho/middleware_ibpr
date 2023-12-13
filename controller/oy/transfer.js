@@ -156,7 +156,7 @@ const transfer_db_cr = async (req, res) => {
             kode_bpr = bank_tujuan
             keterangan = "TRANSFER IN"
             ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
-            let bpr = await db1.sequelize.query(
+            let bpr = await db.sequelize.query(
                 `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
                     replacements: [kode_bpr],
@@ -176,7 +176,7 @@ const transfer_db_cr = async (req, res) => {
                 const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                 if (request.code !== "000") {
                     console.log("failed middleware");
-                    let [results, metadata] = await db1.sequelize.query(
+                    let [results, metadata] = await db.sequelize.query(
                         `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                         {
                         replacements: [
@@ -209,7 +209,7 @@ const transfer_db_cr = async (req, res) => {
                 } else {
                     console.log("request.data transfer");
                     console.log(request);
-                    let [results, metadata] = await db1.sequelize.query(
+                    let [results, metadata] = await db.sequelize.query(
                         `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                         {
                         replacements: [
@@ -267,7 +267,7 @@ const transfer_db_cr = async (req, res) => {
                 keterangan = "TRANSFER PINDAH BUKU"
                 ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
             }
-            let bpr = await db1.sequelize.query(
+            let bpr = await db.sequelize.query(
                 `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
                     replacements: [kode_bpr],
@@ -283,7 +283,7 @@ const transfer_db_cr = async (req, res) => {
                     data: [],
                 });
             } else {
-                let nasabah = await db1.sequelize.query(
+                let nasabah = await db.sequelize.query(
                     `SELECT * FROM acct_ebpr WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
                     {
                         replacements: [
@@ -308,7 +308,7 @@ const transfer_db_cr = async (req, res) => {
                     if (request.code !== "000") {
                         console.log("failed middleware");
                         console.log(request);
-                        let [results, metadata] = await db1.sequelize.query(
+                        let [results, metadata] = await db.sequelize.query(
                             `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                             {
                             replacements: [
@@ -342,7 +342,7 @@ const transfer_db_cr = async (req, res) => {
                     } else {
                         console.log("request.data transfer");
                         console.log(request);
-                        let [results, metadata] = await db1.sequelize.query(
+                        let [results, metadata] = await db.sequelize.query(
                             `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                             {
                             replacements: [
