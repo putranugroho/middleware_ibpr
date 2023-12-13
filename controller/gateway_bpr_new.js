@@ -43,7 +43,7 @@ const connect_axios = async (url, route, data) => {
         console.log(data);
         await axios({
             method: 'post',
-            url: `${url}${route}`,
+            url: `${url}${route.toLowerCase()}`,
             timeout: 25000, //milisecond
             data
         }).then(res => {
@@ -76,9 +76,9 @@ const connect_keeping = async (url, route, data, xusername, xpassword) => {
         console.log(data);
         await axios({
             headers: {
-              "Content-Type": "application/json",
-              "x-username":xusername,
-              "x-password":xpassword
+                "Content-Type": "application/json",
+                "x-username": xusername,
+                "x-password": xpassword
             },
             method: 'post',
             url: `${url}${route}`,
@@ -526,7 +526,7 @@ const inquiry_account = async (req, res) => {
                 });
             } else {
                 let mpin_salah = parseInt(acct[0].mpin_salah)
-  
+
                 if (mpin_salah == 3 && acct[0].status == 2) {
                     res.status(200).send({
                         code: "007",
@@ -666,10 +666,10 @@ const inquiry_account = async (req, res) => {
                     const data_core = {
                         // no_hp:rekening[0].no_hp,
                         bpr_id,
-                        trx_code:"0300",
+                        trx_code: "0300",
                         trx_type,
                         tgl_trans,
-                        tgl_transmis:moment().format('YYMMDDHHmmss'),
+                        tgl_transmis: moment().format('YYMMDDHHmmss'),
                         rrn,
                         data: [{
                             no_rek,
@@ -694,9 +694,9 @@ const inquiry_account = async (req, res) => {
                                         {
                                             no_rek,
                                             nama_rek: request.data[0].nama,
-                                            saldo:`${parseInt(request.data[0].saldoakhir)}`,
-                                            saldo_blokir:"0",
-                                            saldo_min:"50000",
+                                            saldo: `${parseInt(request.data[0].saldoakhir)}`,
+                                            saldo_blokir: "0",
+                                            saldo_min: "50000",
                                         }
                                     ],
                                 });
@@ -709,9 +709,9 @@ const inquiry_account = async (req, res) => {
                                     {
                                         no_rek,
                                         nama_rek: request.data[0].nama,
-                                        saldo:`${parseInt(request.data[0].saldoakhir)}`,
-                                        saldo_blokir:"0",
-                                        saldo_min:"50000",
+                                        saldo: `${parseInt(request.data[0].saldoakhir)}`,
+                                        saldo_blokir: "0",
+                                        saldo_min: "50000",
                                     }
                                 ],
                             });
@@ -725,30 +725,31 @@ const inquiry_account = async (req, res) => {
                                     {
                                         no_rek,
                                         nama_rek: "",
-                                        saldo:"0",
-                                        saldo_blokir:"0",
-                                        saldo_min:"0",
+                                        saldo: "0",
+                                        saldo_blokir: "0",
+                                        saldo_min: "0",
                                     }
                                 ],
                             });
                         }
-                    }   
-                } else {console.log(
-                    {
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: [
-                            {
-                                no_rek,
-                                nama_rek: "",
-                                saldo:"0",
-                                saldo_blokir:"0",
-                                saldo_min:"0",
-                            }
-                        ],
-                    });
+                    }
+                } else {
+                    console.log(
+                        {
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: [
+                                {
+                                    no_rek,
+                                    nama_rek: "",
+                                    saldo: "0",
+                                    saldo_blokir: "0",
+                                    saldo_min: "0",
+                                }
+                            ],
+                        });
                     res.status(200).send({
                         code: "000",
                         status: "ok",
@@ -758,9 +759,9 @@ const inquiry_account = async (req, res) => {
                             {
                                 no_rek,
                                 nama_rek: "",
-                                saldo:"0",
-                                saldo_blokir:"0",
-                                saldo_min:"0",
+                                saldo: "0",
+                                saldo_blokir: "0",
+                                saldo_min: "0",
                             }
                         ],
                     });
@@ -813,17 +814,17 @@ const inquiry_account = async (req, res) => {
                 let [results, metadata] = await db.sequelize.query(
                     `UPDATE cms_acct_ebpr SET mpin = ? WHERE no_hp = ? AND no_rek = ?`,
                     {
-                      replacements: [pin, no_hp, no_rek],
+                        replacements: [pin, no_hp, no_rek],
                     }
                 );
                 console.log(metadata.rowCount);
                 if (!metadata.rowCount) {
-                res.status(200).send({
-                    code: "002",
-                    status: "ok",
-                    message: "Gagal Update Mpin",
-                    data: null,
-                });
+                    res.status(200).send({
+                        code: "002",
+                        status: "ok",
+                        message: "Gagal Update Mpin",
+                        data: null,
+                    });
                 } else {
                     res.status(200).send({
                         code: "000",
@@ -937,7 +938,7 @@ const inquiry_account = async (req, res) => {
                 });
             } else {
                 let mpin_salah = parseInt(acct[0].mpin_salah)
-  
+
                 if (mpin_salah == 3 && acct[0].status == 2) {
                     res.status(200).send({
                         code: "007",
@@ -1183,7 +1184,7 @@ const transfer = async (req, res) => {
                                     // if (bpr_id === "600998") {
                                     //     console.log("GW Transfer Out Timeout");
                                     // } else {
-                                        res.status(200).send(request);
+                                    res.status(200).send(request);
                                     // }
                                 } else {
                                     const data = {
@@ -1306,12 +1307,12 @@ const transfer = async (req, res) => {
                                             // if (bpr_id === "600998") {
                                             //     console.log("GW Transfer Out Timeout");
                                             // } else {
-                                                res.status(200).send({
-                                                    code: "000",
-                                                    status: "ok",
-                                                    message: "Success",
-                                                    data: request.data,
-                                                });
+                                            res.status(200).send({
+                                                code: "000",
+                                                status: "ok",
+                                                message: "Success",
+                                                data: request.data,
+                                            });
                                             // }
                                         }
                                     }
@@ -1533,7 +1534,7 @@ const transfer = async (req, res) => {
                             // if (bank_tujuan === "600641") {
                             //     console.log("GW Transfer In Timeout");
                             // } else {
-                                res.status(200).send(request);
+                            res.status(200).send(request);
                             // }
                         } else {
                             const detail_trans = {
@@ -1569,12 +1570,12 @@ const transfer = async (req, res) => {
                             // if (bank_tujuan === "600641") {
                             //     console.log("GW Transfer In Timeout");
                             // } else {
-                                res.status(200).send({
-                                    code: "000",
-                                    status: "ok",
-                                    message: "Success",
-                                    data: request.data,
-                                });   
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: request.data,
+                            });
                             // }
                         }
                     }
@@ -1658,7 +1659,7 @@ const transfer = async (req, res) => {
                             // if (bank_tujuan === "600641") {
                             //     console.log("GW Transfer In Timeout");
                             // } else {
-                                res.status(200).send(request);
+                            res.status(200).send(request);
                             // }
                         } else {
                             const detail_trans = {
@@ -1694,12 +1695,12 @@ const transfer = async (req, res) => {
                             // if (bank_tujuan === "600641") {
                             //     console.log("GW Transfer In Timeout");
                             // } else {
-                                res.status(200).send({
-                                    code: "000",
-                                    status: "ok",
-                                    message: "Success",
-                                    data: request.data,
-                                });   
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: request.data,
+                            });
                             // }
                         }
                     }
@@ -1801,7 +1802,7 @@ const transfer = async (req, res) => {
                                     // if (bpr_id === "600998") {
                                     //     console.log("GW Pindah Buku Timeout");
                                     // } else {
-                                        res.status(200).send(request);
+                                    res.status(200).send(request);
                                     // }
                                 } else {
                                     //--berhasil dapat list product update atau insert ke db --//
@@ -1810,12 +1811,12 @@ const transfer = async (req, res) => {
                                     // if (bpr_id === "600998") {
                                     //     console.log("GW Pindah Buku Timeout");
                                     // } else {
-                                        res.status(200).send({
-                                            code: "000",
-                                            status: "ok",
-                                            message: "Success",
-                                            data: request.data,
-                                        });
+                                    res.status(200).send({
+                                        code: "000",
+                                        status: "ok",
+                                        message: "Success",
+                                        data: request.data,
+                                    });
                                     // }
                                 }
                             }
@@ -1943,7 +1944,7 @@ const transfer = async (req, res) => {
                             data: null,
                         })
                     }
-                }   
+                }
             }
         }
     } catch (error) {
@@ -2064,7 +2065,7 @@ const withdrawal = async (req, res) => {
                         counter_transaksi = parseInt(check_status[0].tariktunai)
                         if (amount == undefined) amount = 0
                         if (trans_fee == undefined) trans_fee = 0
-                        const total = parseInt(trans_fee) + parseInt(amount)      
+                        const total = parseInt(trans_fee) + parseInt(amount)
                         if (trx_type == "TRX") {
                             if (total <= limit_trx) {
                                 if (counter_transaksi + total <= limit_harian) {
@@ -2143,7 +2144,7 @@ const withdrawal = async (req, res) => {
                                                 // if (bpr_id === "600001") {
                                                 //     console.log("GW Token Timeout");
                                                 // } else {
-                                                    res.status(200).send(request);
+                                                res.status(200).send(request);
                                                 // }
                                             } else {
                                                 const detail_trans = {
@@ -2195,16 +2196,16 @@ const withdrawal = async (req, res) => {
                                                     // if (bpr_id === "600001") {
                                                     //     console.log("GW Token Timeout");
                                                     // } else {
-                                                        res.status(200).send({
-                                                            code: "000",
-                                                            status: "ok",
-                                                            message: "Success",
-                                                            data: request.data,
-                                                        });
+                                                    res.status(200).send({
+                                                        code: "000",
+                                                        status: "ok",
+                                                        message: "Success",
+                                                        data: request.data,
+                                                    });
                                                     // }
                                                 }
                                             }
-                                        }                                    
+                                        }
                                     }
                                 } else {
                                     res.status(200).send({
@@ -2532,7 +2533,7 @@ const withdrawal = async (req, res) => {
                             }
                         );
                         if (request.code !== "000") {
-                            console.log(request);600931
+                            console.log(request); 600931
                             res.status(200).send(request);
                         } else {
                             const detail_trans = {
@@ -2623,12 +2624,12 @@ const withdrawal = async (req, res) => {
                             // } else if (keterangan === "on_us" && bpr_id === "600998") {
                             //     console.log("GW TARIK TUNAI ON_US Timeout");
                             // } else {
-                                res.status(200).send({
-                                    code: "000",
-                                    status: "ok",
-                                    message: "Success",
-                                    data: request.data,
-                                });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                data: request.data,
+                            });
                             // }
                         }
                     }
@@ -2999,7 +3000,7 @@ const ppob = async (req, res) => {
                                 // if (bpr_id === "600998") {
                                 //     console.log("GW PPOB Timeout");
                                 // } else {
-                                    res.status(200).send(request);
+                                res.status(200).send(request);
                                 // }
                             } else {
                                 const detail_trans = {
@@ -3049,7 +3050,7 @@ const ppob = async (req, res) => {
                                             status: "ok",
                                             message: "Success",
                                             data: request.data,
-                                        });   
+                                        });
                                     }
                                 }
                             }
