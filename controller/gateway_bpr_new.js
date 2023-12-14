@@ -1196,16 +1196,18 @@ const transfer = async (req, res) => {
                                         beneficiary_email: "nugrohopnn@gmail.com",
                                         recipient_city: "391",
                                     };
-                                    console.log("data reject reversal keeping");
+                                    console.log("data request keeping");
                                     console.log(data);
-                                    const request = await connect_keeping(
+                                    const request_keeping = await connect_keeping(
                                         "https://api.keeping.digital",
                                         "/transfer",
                                         data,
                                         xusername,
                                         xpassword
                                     );
-                                    if (request.message != "Berhasil") {
+                                    console.log("hasil request keeping");
+                                    console.log(request_keeping);
+                                    if (request_keeping.message != "Berhasil") {
                                         const data_core_rev = {
                                             no_hp,
                                             bpr_id,
@@ -1240,11 +1242,11 @@ const transfer = async (req, res) => {
                                                 gl_amount_cr_2: trans_fee,
                                             }
                                         }
-                                        const request = await connect_axios(url, "transfer", data_core_rev)
-                                        if (request.code !== "000") {
+                                        const request_reversal_keeping = await connect_axios(url, "transfer", data_core_rev)
+                                        if (request_reversal_keeping.code !== "000") {
                                             console.log("failed reversal keeping");
-                                            console.log(request);
-                                            res.status(200).send(request);
+                                            console.log(request_reversal_keeping);
+                                            res.status(200).send(request_reversal_keeping);
                                         } else {
                                             //--berhasil dapat list product update atau insert ke db --//
                                             console.log("Reversal Success");
@@ -1252,7 +1254,7 @@ const transfer = async (req, res) => {
                                                 code: "000",
                                                 status: "ok",
                                                 message: "Reversal Success",
-                                                data: request.data,
+                                                data: request_reversal_keeping.data,
                                             });
                                         }
                                     } else {
