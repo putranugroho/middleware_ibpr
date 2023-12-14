@@ -386,6 +386,7 @@ const transfer_db_cr = async (req, res) => {
                                 message: "Success",
                                 rrn: rrn,
                                 data: request.data,
+                                data_keeping: request.data_keeping,
                             });
                         // }
                     }
