@@ -1196,6 +1196,7 @@ const transfer = async (req, res) => {
                                         beneficiary_email: "nugrohopnn@gmail.com",
                                         recipient_city: "391",
                                     };
+                                    console.log("data reject reversal keeping");
                                     console.log(data);
                                     const request = await connect_keeping(
                                         "https://api.keeping.digital",
@@ -1218,7 +1219,7 @@ const transfer = async (req, res) => {
                                             amount,
                                             trans_fee,
                                             trx_code,
-                                            trx_type,
+                                            trx_type: "REV",
                                             keterangan,
                                             lokasi: "",
                                             tgl_trans,
@@ -1241,7 +1242,7 @@ const transfer = async (req, res) => {
                                         }
                                         const request = await connect_axios(url, "transfer", data_core_rev)
                                         if (request.code !== "000") {
-                                            console.log("failed gateway reversal");
+                                            console.log("failed reversal keeping");
                                             console.log(request);
                                             res.status(200).send(request);
                                         } else {
