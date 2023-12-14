@@ -1250,6 +1250,13 @@ const transfer = async (req, res) => {
                                         } else {
                                             //--berhasil dapat list product update atau insert ke db --//
                                             console.log("Reversal Success");
+                                            console.log({
+                                                code: "000",
+                                                status: "ok",
+                                                message: "Reversal Success",
+                                                data: request_reversal_keeping.data,
+                                                data_keeping: request_keeping,
+                                            });
                                             res.status(200).send({
                                                 code: "000",
                                                 status: "ok",
@@ -1311,6 +1318,13 @@ const transfer = async (req, res) => {
                                             // if (bpr_id === "600998") {
                                             //     console.log("GW Transfer Out Timeout");
                                             // } else {
+                                            console.log({
+                                                code: "000",
+                                                status: "ok",
+                                                message: "Success",
+                                                data: request.data,
+                                                data_keeping: request_keeping,
+                                            });
                                             res.status(200).send({
                                                 code: "000",
                                                 status: "ok",
