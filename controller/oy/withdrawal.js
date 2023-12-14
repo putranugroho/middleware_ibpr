@@ -470,7 +470,7 @@ const release_withdrawal = async (req, res) => {
                             );
                         } else {
                             if (data.KODETRX.substring(0,2) == "01") {
-                                const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                const data_nasabah = { no_rek: "", no_hp, bpr_id, trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
                                 console.log("data_nasabah");
                                 console.log(data_nasabah);
                                 const nasabah = await connect_axios(bpr[0].gateway, "gateway_bpr/inquiry_account", data_nasabah)
@@ -713,7 +713,7 @@ const release_withdrawal = async (req, res) => {
                                     let nominal = `00000000000${cek_hold_dana[0].amount}00`
                                     let nilai = formatRibuan(cek_hold_dana[0].amount)
                                     nominal = nominal.substring(nominal.length-12, nominal.length)
-                                    const data_nasabah = { no_rek: "", no_hp, bpr_id:"600931", trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
+                                    const data_nasabah = { no_rek: "", no_hp, bpr_id, trx_code:"0500", status: "", tgl_trans, tgl_transmis: moment().format('YYMMDDHHmmss'), rrn }
                                     const nasabah = await connect_axios(bpr[0].gateway, "gateway_bpr/inquiry_account", data_nasabah)
                                     console.log("Inquiry account");
                                     console.log(nasabah)
