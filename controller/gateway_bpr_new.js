@@ -1207,7 +1207,7 @@ const transfer = async (req, res) => {
                                     );
                                     console.log("hasil request keeping");
                                     console.log(request_keeping);
-                                    if (request_keeping.message != "Berhasil") {
+                                    if (request_keeping.message !== "Berhasil" && request_keeping.value !== "1") {
                                         const data_core_rev = {
                                             no_hp,
                                             bpr_id,
@@ -1255,6 +1255,7 @@ const transfer = async (req, res) => {
                                                 status: "ok",
                                                 message: "Reversal Success",
                                                 data: request_reversal_keeping.data,
+                                                data_keeping: request_keeping,
                                             });
                                         }
                                     } else {
@@ -1315,6 +1316,7 @@ const transfer = async (req, res) => {
                                                 status: "ok",
                                                 message: "Success",
                                                 data: request.data,
+                                                data_keeping: request_keeping,
                                             });
                                             // }
                                         }
