@@ -146,6 +146,8 @@ const transfer_db_cr = async (req, res) => {
         trx_type,
         tgl_trans,
         user_id,
+        xusername,
+        xpassword,
         pin,
         rrn} = req.body;
     try {
@@ -302,7 +304,7 @@ const transfer_db_cr = async (req, res) => {
                         data: null,
                     });
                 } else {
-                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin, tgl_trans, rrn}
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin, tgl_trans, xusername, xpassword, rrn}
                     console.log(data);
                     const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                     if (request.code !== "000") {
