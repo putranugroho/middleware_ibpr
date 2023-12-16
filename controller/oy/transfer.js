@@ -2,8 +2,8 @@
 // const api_crm = require("../Services/API/api_crm");
 const axios = require("axios").default;
 var https = require('https');
-const db = require("../../connection");
-const db1 = require("../../connection/ibprdev");
+// const db = require("../../connection");
+const db = require("../../connection/ibprdev");
 const moment = require("moment");
 moment.locale("id");
 const { date } = require("../../utility/getDate");
@@ -24,19 +24,19 @@ const {
 
 // Generate random ref number
 function generateNumber(length) {
-    const characters = '0123456789';
+    const characters ='0123456789';
     let result = '';
     const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
+    for ( let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
 
     return result;
 }
 
-const agent = new https.Agent({
+const agent = new https.Agent({  
     rejectUnauthorized: false
-});
+  });
 
 const connect_axios = async (url, route, data) => {
     try {
@@ -51,7 +51,7 @@ const connect_axios = async (url, route, data) => {
             Result = res.data
         }).catch(error => {
             console.log("error mdw");
-            if (error.code == 'ECONNABORTED') {
+            if (error.code == 'ECONNABORTED'){
                 Result = {
                     code: "088",
                     status: "ECONNABORTED",
@@ -63,23 +63,23 @@ const connect_axios = async (url, route, data) => {
         });
         return Result
     } catch (error) {
-        res.status(200).send({
-            code: "099",
-            status: "Failed",
-            message: error.message
-        });
+            res.status(200).send({
+                code: "099",
+                status: "Failed",
+                message: error.message
+            });  
     }
 }
-
-
+  
+  
 // API untuk Inquiry Account
 const inquiry_account_trf = async (req, res) => {
-    let { no_rek, bpr_id, tgl_trans, rrn } = req.body;
+    let {no_rek, bpr_id, tgl_trans, rrn} = req.body;
     try {
         console.log("REQ INQ TRF");
         console.log(req.body);
         let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
+            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
             {
                 replacements: [bpr_id],
                 type: db.sequelize.QueryTypes.SELECT,
@@ -94,8 +94,8 @@ const inquiry_account_trf = async (req, res) => {
                 data: [],
             });
         } else {
-            const data = { no_hp: "", no_rek, bpr_id, trx_code: "0200", trx_type: "TRX", tgl_trans, rrn, gl_jns: "2" }
-            const request = await connect_axios(bpr[0].gateway, "gateway_bpr/inquiry_account", data)
+            const data = {no_hp:"", no_rek, bpr_id, trx_code:"0200", trx_type:"TRX", tgl_trans, rrn}
+            const request = await connect_axios(bpr[0].gateway,"gateway_bpr/inquiry_account",data)
             if (request.code !== "000") {
                 console.log(request);
                 res.status(200).send(request);
@@ -125,9 +125,9 @@ const inquiry_account_trf = async (req, res) => {
             }
         }
     } catch (error) {
-        //--error server--//
-        console.log("erro get product", error);
-        res.send(error);
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
     }
 };
 
@@ -149,7 +149,7 @@ const transfer_db_cr = async (req, res) => {
         xusername,
         xpassword,
         pin,
-        rrn } = req.body;
+        rrn} = req.body;
     try {
         let kode_bpr, keterangan, ket_trans = ""
         if (trx_code == "2200") {
@@ -159,7 +159,7 @@ const transfer_db_cr = async (req, res) => {
             keterangan = "TRANSFER IN"
             ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
             let bpr = await db.sequelize.query(
-                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
+                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
                     replacements: [kode_bpr],
                     type: db.sequelize.QueryTypes.SELECT,
@@ -174,39 +174,39 @@ const transfer_db_cr = async (req, res) => {
                     data: [],
                 });
             } else {
-                const data = { no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn }
-                const request = await connect_axios(bpr[0].gateway, "gateway_bpr/transfer", data)
+                const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                 if (request.code !== "000") {
                     console.log("failed middleware");
                     let [results, metadata] = await db.sequelize.query(
                         `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                         {
-                            replacements: [
-                                no_hp,
-                                bpr_id,
-                                no_rek,
-                                "",
-                                bank_tujuan,
-                                rek_tujuan,
-                                nama_tujuan,
-                                trx_code,
-                                keterangan,
-                                ket_trans,
-                                "",
-                                amount,
-                                trans_fee,
-                                tgl_trans,
-                                rrn,
-                                request.code,
-                                request.message
-                            ],
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            "",
+                            bank_tujuan,
+                            rek_tujuan,
+                            nama_tujuan,
+                            trx_code,
+                            keterangan,
+                            ket_trans,
+                            "",
+                            amount,
+                            trans_fee,
+                            tgl_trans,
+                            rrn,
+                            request.code,
+                            request.message
+                        ],
                         }
                     );
                     console.log(request);
                     // if (bank_tujuan === "602640" && trx_code === "2200") {
                     //     console.log("MDW Transfer In Timeout");
                     // } else {
-                    res.status(200).send(request);
+                        res.status(200).send(request);
                     // }
                 } else {
                     console.log("request.data transfer");
@@ -214,49 +214,49 @@ const transfer_db_cr = async (req, res) => {
                     let [results, metadata] = await db.sequelize.query(
                         `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                         {
-                            replacements: [
-                                no_hp,
-                                bpr_id,
-                                no_rek,
-                                request.data.nama,
-                                bank_tujuan,
-                                rek_tujuan,
-                                nama_tujuan,
-                                trx_code,
-                                keterangan,
-                                ket_trans,
-                                request.data.noreff,
-                                amount,
-                                trans_fee,
-                                tgl_trans,
-                                rrn,
-                                request.code,
-                                request.message
-                            ],
+                        replacements: [
+                            no_hp,
+                            bpr_id,
+                            no_rek,
+                            request.data.nama,
+                            bank_tujuan,
+                            rek_tujuan,
+                            nama_tujuan,
+                            trx_code,
+                            keterangan,
+                            ket_trans,
+                            request.data.noreff,
+                            amount,
+                            trans_fee,
+                            tgl_trans,
+                            rrn,
+                            request.code,
+                            request.message
+                        ],
                         }
                     );
                     // if (bank_tujuan === "602640" && trx_code === "2200") {
                     //     console.log("MDW Transfer In Timeout");
                     // } else {
-                    console.log({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: request.data,
-                    });
-                    res.status(200).send({
-                        code: "000",
-                        status: "ok",
-                        message: "Success",
-                        rrn: rrn,
-                        data: request.data,
-                    });
+                        console.log({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
+                        res.status(200).send({
+                            code: "000",
+                            status: "ok",
+                            message: "Success",
+                            rrn: rrn,
+                            data: request.data,
+                        });
                     // }
                 }
             }
         } else {
-            if (trx_code == "2100") {
+            if (trx_code == "2100"){
                 console.log("REQ BODY TRANSFER OUT");
                 console.log(req.body);
                 kode_bpr = bpr_id
@@ -270,7 +270,7 @@ const transfer_db_cr = async (req, res) => {
                 ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
             }
             let bpr = await db.sequelize.query(
-                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
+                `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
                     replacements: [kode_bpr],
                     type: db.sequelize.QueryTypes.SELECT,
@@ -304,34 +304,34 @@ const transfer_db_cr = async (req, res) => {
                         data: null,
                     });
                 } else {
-                    const data = { no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin, tgl_trans, xusername, xpassword, rrn }
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin, tgl_trans, xusername, xpassword, rrn}
                     console.log(data);
-                    const request = await connect_axios(bpr[0].gateway, "gateway_bpr/transfer", data)
+                    const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                     if (request.code !== "000") {
                         console.log("failed middleware");
                         console.log(request);
                         let [results, metadata] = await db.sequelize.query(
                             `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'0')`,
                             {
-                                replacements: [
-                                    no_hp,
-                                    bpr_id,
-                                    no_rek,
-                                    "",
-                                    bank_tujuan,
-                                    rek_tujuan,
-                                    nama_tujuan,
-                                    trx_code,
-                                    keterangan,
-                                    ket_trans,
-                                    "",
-                                    amount,
-                                    trans_fee,
-                                    tgl_trans,
-                                    rrn,
-                                    request.code,
-                                    request.message
-                                ],
+                            replacements: [
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                "",
+                                bank_tujuan,
+                                rek_tujuan,
+                                nama_tujuan,
+                                trx_code,
+                                keterangan,
+                                ket_trans,
+                                "",
+                                amount,
+                                trans_fee,
+                                tgl_trans,
+                                rrn,
+                                request.code,
+                                request.message
+                            ],
                             }
                         );
                         // if (bpr_id === "600001" && trx_code === "2100") {
@@ -339,7 +339,7 @@ const transfer_db_cr = async (req, res) => {
                         // } else if (bpr_id === "600001" && trx_code === "2300") {
                         //     console.log("MDW Pindah Buku Timeout");
                         // } else {
-                        res.status(200).send(request);
+                            res.status(200).send(request);
                         // }
                     } else {
                         console.log("request.data transfer");
@@ -347,25 +347,25 @@ const transfer_db_cr = async (req, res) => {
                         let [results, metadata] = await db.sequelize.query(
                             `INSERT INTO dummy_transaksi(no_hp, bpr_id, no_rek, nama_rek, bank_tujuan, rek_tujuan, nama_tujuan, tcode, produk_id, ket_trans, reff, amount, admin_fee, tgljam_trans, rrn, code, message, status_rek) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'1')`,
                             {
-                                replacements: [
-                                    no_hp,
-                                    bpr_id,
-                                    no_rek,
-                                    request.data.nama,
-                                    bank_tujuan,
-                                    rek_tujuan,
-                                    nama_tujuan,
-                                    trx_code,
-                                    keterangan,
-                                    ket_trans,
-                                    request.data.noreff,
-                                    amount,
-                                    trans_fee,
-                                    tgl_trans,
-                                    rrn,
-                                    request.code,
-                                    request.message
-                                ],
+                            replacements: [
+                                no_hp,
+                                bpr_id,
+                                no_rek,
+                                request.data.nama,
+                                bank_tujuan,
+                                rek_tujuan,
+                                nama_tujuan,
+                                trx_code,
+                                keterangan,
+                                ket_trans,
+                                request.data.noreff,
+                                amount,
+                                trans_fee,
+                                tgl_trans,
+                                rrn,
+                                request.code,
+                                request.message
+                            ],
                             }
                         );
                         // if (bpr_id === "600001" && trx_code === "2100") {
@@ -373,30 +373,31 @@ const transfer_db_cr = async (req, res) => {
                         // } else if (bpr_id === "600001" && trx_code === "2300") {
                         //     console.log("MDW Pindah Buku Timeout");
                         // } else {
-                        console.log({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: request.data,
-                        });
-                        res.status(200).send({
-                            code: "000",
-                            status: "ok",
-                            message: "Success",
-                            rrn: rrn,
-                            data: request.data,
-                            data_keeping: request.data_keeping,
-                        });
+                            console.log({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                                data_keeping: request.data_keeping,
+                            });
+                            res.status(200).send({
+                                code: "000",
+                                status: "ok",
+                                message: "Success",
+                                rrn: rrn,
+                                data: request.data,
+                                data_keeping: request.data_keeping,
+                            });
                         // }
                     }
                 }
             }
         }
     } catch (error) {
-        //--error server--//
-        console.log("erro get product", error);
-        res.send(error);
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
     }
 };
 
@@ -414,7 +415,7 @@ const check_status_trf = async (req, res) => {
         trx_code,
         trx_type,
         tgl_trans,
-        rrn } = req.body;
+        rrn} = req.body;
     try {
         console.log("REQ BODY STATUS TRANSFER");
         console.log(req.body);
@@ -422,7 +423,7 @@ const check_status_trf = async (req, res) => {
         if (trx_code == "2100") {
             transfer = "DB"
         } else if (trx_code == "2200") {
-            transfer = "CR"
+            transfer = "CR"                
         } else if (trx_code == "2300") {
             transfer = "DB CR"
         }
@@ -501,9 +502,9 @@ const check_status_trf = async (req, res) => {
             });
         }
     } catch (error) {
-        //--error server--//
-        console.log("erro get product", error);
-        res.send(error);
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
     }
 };
 
@@ -521,10 +522,10 @@ const reversal_trf = async (req, res) => {
         trx_code,
         trx_type,
         tgl_trans,
-        rrn } = req.body;
+        rrn} = req.body;
     try {
         let kode_bpr, keterangan = ""
-        if (trx_code == "2100") {
+        if (trx_code == "2100"){
             console.log("REQ BODY REV TRANSFER OUT");
             console.log(req.body);
             kode_bpr = bpr_id
@@ -541,7 +542,7 @@ const reversal_trf = async (req, res) => {
             keterangan = "TRANSFER PINDAH BUKU"
         }
         let bpr = await db.sequelize.query(
-            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'`,
+            `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
             {
                 replacements: [kode_bpr],
                 type: db.sequelize.QueryTypes.SELECT,
@@ -557,11 +558,11 @@ const reversal_trf = async (req, res) => {
             });
         } else {
             let check_transaksi = await db.sequelize.query(
-                `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND rrn = ?`,
-                {
-                    replacements: [no_rek, no_hp, bpr_id, trx_code, amount, trans_fee, rrn],
-                    type: db.sequelize.QueryTypes.SELECT,
-                }
+            `SELECT * FROM dummy_transaksi WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND tcode = ? AND amount = ? AND admin_fee = ? AND rrn = ?`,
+            {
+                replacements: [no_rek, no_hp, bpr_id,trx_code,amount,trans_fee,rrn],
+                type: db.sequelize.QueryTypes.SELECT,
+            }
             );
             if (!check_transaksi.length) {
                 console.log({
@@ -580,8 +581,8 @@ const reversal_trf = async (req, res) => {
                 });
             } else {
                 if (check_transaksi[0].status_rek !== "R") {
-                    const data = { no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan: "", amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn }
-                    const request = await connect_axios(bpr[0].gateway, "gateway_bpr/transfer", data)
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan:"", amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                    const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                     if (request.code !== "000") {
                         console.log(request);
                         res.status(200).send(request);
@@ -620,9 +621,9 @@ const reversal_trf = async (req, res) => {
             }
         }
     } catch (error) {
-        //--error server--//
-        console.log("erro get product", error);
-        res.send(error);
+      //--error server--//
+      console.log("erro get product", error);
+      res.send(error);
     }
 };
 
