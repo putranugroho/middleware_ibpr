@@ -2444,6 +2444,7 @@ const withdrawal = async (req, res) => {
                 }
             }
         } else if (trx_code == "1100") {
+            tgl_trans = moment().format("YYMMDDHHmmss")
             let jurnal_bpr
             if (keterangan == "acquirer") {
                 jurnal_bpr = acq_id
