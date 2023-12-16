@@ -517,7 +517,7 @@ const inquiry_account = async (req, res) => {
                 const { CORE_URL } = process.env
 
                 let hasil = await connect_axios(CORE_URL, 'inquiry', data_core)
-                res.status(200).send(hasil)
+                return res.status(200).send(hasil)
             }
 
 
