@@ -1840,22 +1840,113 @@ const transfer = async (req, res) => {
                                     // if (bpr_id === "600998") {
                                     //     console.log("GW Pindah Buku Timeout");
                                     // } else {
+                                    request.data_keeping = {
+                                        value:0,
+                                        message:"Gagal ke Core"
+                                    }
                                     res.status(200).send(request);
                                     // }
                                 } else {
+                                    const data = {
+                                        token: "715f8ab555438f985b579844ea998866",
+                                        account_number: rek_tujuan,
+                                        bank_code: bank_tujuan,
+                                        amount,
+                                        remark: "saldo keeping",
+                                        beneficiary_email: "nugrohopnn@gmail.com",
+                                        recipient_city: "391",
+                                    };
+                                    console.log("data request keeping");
+                                    console.log(data)
+                                    const request_keeping = await connect_keeping(
+                                        "https://api.keeping.digital",
+                                        "/transfer",
+                                        data,
+                                        xusername,
+                                        xpassword
+                                    );
+                                    console.log("hasil request keeping");
+                                    console.log(request_keeping);
+                                    if (request_keeping.message !== "Berhasil" && request_keeping.value !== "1") {
+                                        const data_core_reversal = {
+                                            no_hp,
+                                            bpr_id,
+                                            no_rek,
+                                            nama_rek: acct[0].nama_rek,
+                                            // nama_rek,
+                                            bank_tujuan,
+                                            nama_bank_tujuan: "",
+                                            rek_tujuan,
+                                            nama_tujuan,
+                                            amount,
+                                            trans_fee,
+                                            trx_code,
+                                            trx_type: "REV",
+                                            keterangan,
+                                            lokasi: "",
+                                            tgl_trans,
+                                            tgl_transmis: moment().format('YYMMDDHHmmss'),
+                                            rrn,
+                                            data: {
+                                                gl_rek_db_1: rek_tujuan,
+                                                gl_jns_db_1: "2",
+                                                gl_amount_db_1: amount,
+                                                gl_rek_db_2: nosbb.no_fee.nosbb_cr,
+                                                gl_jns_db_2: nosbb.no_fee.jns_sbb_cr,
+                                                gl_amount_db_2: trans_fee,
+                                                gl_rek_cr_1: no_rek,
+                                                gl_jns_cr_1: "2",
+                                                gl_amount_cr_1: amount,
+                                                gl_rek_cr_2: no_rek,
+                                                gl_jns_cr_2: "2",
+                                                gl_amount_cr_2: trans_fee,
+                                            }
+                                        }
+                                        const request_reversal_keeping = await connect_axios(url, "transfer", data_core_reversal)
+                                        let [results, metadata] = await db.sequelize.query(
+                                            `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
+                                            {
+                                                replacements: [request_reversal_keeping.code, request_reversal_keeping.message, no_rek, no_hp, bpr_id, amount, trans_fee, tgl_trans, rrn],
+                                            }
+                                        );
+                                        if (request_reversal_keeping.code !== "000") {
+                                            console.log("failed gateway");
+                                            console.log(request_reversal_keeping);
+                                            request_reversal_keeping.data_keeping = {
+                                                value:0,
+                                                message:"Gagal reversal ke Core"
+                                            }
+                                            res.status(200).send(request_reversal_keeping);
+                                        } else {
+                                            //--berhasil dapat list product update atau insert ke db --//
+                                            console.log("Success");
+                                            console.log(request_reversal_keeping.data);
+                                            res.status(200).send({
+                                                code: "000",
+                                                status: "ok",
+                                                message: "Success",
+                                                data: request_reversal_keeping.data,
+                                                data_keeping: request_keeping,
+                                            });
+                                        }
+                                    } else {
                                     //--berhasil dapat list product update atau insert ke db --//
                                     console.log("Success");
-                                    console.log(request.data);
-                                    // if (bpr_id === "600998") {
-                                    //     console.log("GW Pindah Buku Timeout");
-                                    // } else {
+                                    console.log({
+                                        code: "000",
+                                        status: "ok",
+                                        message: "Success",
+                                        data: request.data,
+                                        data_keeping: request_keeping,
+                                    });
                                     res.status(200).send({
                                         code: "000",
                                         status: "ok",
                                         message: "Success",
                                         data: request.data,
+                                        data_keeping: request_keeping,
                                     });
-                                    // }
+                                    }
                                 }
                             }
                         }
