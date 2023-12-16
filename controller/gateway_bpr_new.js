@@ -8,6 +8,7 @@ const {
 const db = require("../connection");
 const moment = require("moment");
 const { request } = require("https");
+const { promiseHooks } = require("v8");
 moment.locale("id");
 
 // Generate random ref number
@@ -502,6 +503,24 @@ const inquiry_account = async (req, res) => {
             }
         } else if (trx_code == "0200") {
             console.log("REQ ACTIVATE ACCOUNT");
+            if (no_hp === '') {
+                const data_core = {
+                    bpr_id,
+                    trx_code,
+                    trx_type: "TRX",
+                    tgl_trans,
+                    tgl_transmis: moment().format('YYMMDDHHmmss'),
+                    rrn,
+                    no_rek,
+                    gl_jns: "2"
+                }
+                const { CORE_URL } = process.env
+
+                let hasil = connect_axios(CORE_URL, 'inquiry', data_core)
+                res.status(200).send(hasil)
+            }
+
+
             let acct = await db.sequelize.query(
                 `SELECT * FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
                 {
