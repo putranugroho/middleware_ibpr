@@ -462,7 +462,7 @@ const inquiry_account = async (req, res) => {
         //             no_rek, no_hp, bpr_id, trx_code, trx_type, tgl_trans, tgl_transmis, rrn
         //         ],
         //     }
-        // );
+        // );inquiry_account
         if (trx_code == "0100") {
             let acct = await db.sequelize.query(
                 `SELECT bpr_id, no_hp, no_rek, nama_rek, status FROM cms_acct_ebpr WHERE bpr_id = ? AND no_hp = ? AND no_rek = ? AND status != '6'`,
@@ -516,7 +516,7 @@ const inquiry_account = async (req, res) => {
                 }
                 const { CORE_URL } = process.env
 
-                let hasil = connect_axios(CORE_URL, 'inquiry', data_core)
+                let hasil = await connect_axios(CORE_URL, 'inquiry', data_core)
                 res.status(200).send(hasil)
             }
 
