@@ -1,9 +1,11 @@
-// const api_offline = require("../Services/API/api_offline");
-// const api_crm = require("../Services/API/api_crm");
 const axios = require("axios").default;
 var https = require('https');
 // const db = require("../../connection");
 const db = require("../../connection/ibprdev");
+const {
+    encryptStringWithRsaPublicKey,
+    decryptStringWithRsaPrivateKey,
+} = require("../utility/encrypt");
 const moment = require("moment");
 moment.locale("id");
 const { date } = require("../../utility/getDate");
@@ -269,6 +271,7 @@ const transfer_db_cr = async (req, res) => {
                 keterangan = "TRANSFER PINDAH BUKU"
                 ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
             }
+            let mpin = encryptStringWithRsaPublicKey(pin, "./utility/privateKey.pem");
             let bpr = await db.sequelize.query(
                 `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
@@ -286,11 +289,12 @@ const transfer_db_cr = async (req, res) => {
                 });
             } else {
                 let nasabah = await db.sequelize.query(
-                    `SELECT * FROM acct_ebpr WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
+                    `SELECT * FROM acct_ebpr WHERE user_id = ? AND no_hp = ? AND pin = ? AND bpr_id = ?`,
                     {
                         replacements: [
                             user_id,
                             no_hp,
+                            mpin,
                             bpr_id
                         ],
                         type: db.sequelize.QueryTypes.SELECT,
@@ -300,7 +304,7 @@ const transfer_db_cr = async (req, res) => {
                     res.status(200).send({
                         code: "999",
                         status: "ok",
-                        message: "Gagal Account Tidak Ditemukan",
+                        message: "Gagal User_id atau PIN Salah",
                         data: null,
                     });
                 } else {
