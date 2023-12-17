@@ -1830,15 +1830,22 @@ const transfer = async (req, res) => {
                         data: null,
                     });
                 } else if ((acct[0].mpin == pin || trx_type === "REV") && acct[0].status == 1) {
-                    if (trx_type === "TRX") {
-                        if (status_core.status == "0") {
-                            res.status(200).send({
-                                code: "099",
-                                status: "Failed",
-                                message: "Gagal, Core SIGN OFF!!!",
-                                data: null,
-                            });
-                        } else {
+                    let status_core = await db.sequelize.query(
+                        `SELECT * FROM status_core WHERE bpr_id = ?`,
+                        {
+                            replacements: [bpr_id],
+                            type: db.sequelize.QueryTypes.SELECT,
+                        }
+                    );
+                    if (status_core.status == "0") {
+                        res.status(200).send({
+                            code: "099",
+                            status: "Failed",
+                            message: "Gagal, Core SIGN OFF!!!",
+                            data: null,
+                        });
+                    } else {
+                        if (trx_type === "TRX") {
                             let get_nosbb = await db.sequelize.query(
                                 `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
                                 {
@@ -2011,23 +2018,7 @@ const transfer = async (req, res) => {
                                     }
                                 }
                             }
-                        }
-                    } else if (trx_type === "REV") {
-                        let status_core = await db.sequelize.query(
-                            `SELECT * FROM status_core WHERE bpr_id = ?`,
-                            {
-                                replacements: [bpr_id],
-                                type: db.sequelize.QueryTypes.SELECT,
-                            }
-                        );
-                        if (status_core.status == "0") {
-                            res.status(200).send({
-                                code: "099",
-                                status: "Failed",
-                                message: "Gagal, Core SIGN OFF!!!",
-                                data: null,
-                            });
-                        } else {
+                        } else if (trx_type === "REV") {
                             let get_nosbb = await db.sequelize.query(
                                 `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
                                 {
