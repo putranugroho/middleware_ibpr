@@ -5,7 +5,7 @@ const db = require("../../connection/ibprdev");
 const {
     encryptStringWithRsaPublicKey,
     decryptStringWithRsaPrivateKey,
-} = require("../utility/encrypt");
+} = require("../../utility/encrypt");
 const moment = require("moment");
 moment.locale("id");
 const { date } = require("../../utility/getDate");
