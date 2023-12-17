@@ -1097,6 +1097,7 @@ const transfer = async (req, res) => {
         trx_type,
         keterangan,
         tgl_trans,
+        pin,
         rrn } = req.body;
     try {
         let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
@@ -1123,7 +1124,30 @@ const transfer = async (req, res) => {
                     data: null,
                 });
             } else {
-                if (acct[0].status == "1") {
+                let mpin_salah = parseInt(acct[0].mpin_salah)
+
+                if (acct[0].status != 2 && acct[0].status != 1) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
+                        data: null,
+                    });
+                } else if (mpin_salah == 3 && acct[0].status == 2) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, mPIN Terblokir!!!",
+                        data: null,
+                    });
+                } else if (mpin_salah != 3 && acct[0].status == 2) {
+                    res.status(200).send({
+                        code: "007",
+                        status: "Failed",
+                        message: "Gagal, Akun Anda Telah diBlokir!!!",
+                        data: null,
+                    });
+                } else if ((acct[0].mpin == pin || trx_type === "REV") && check_status[0].status == 1) {
                     let get_nosbb = await db.sequelize.query(
                         `SELECT * FROM gl_trans WHERE tcode = ? AND bpr_id = ?`,
                         {
@@ -1484,12 +1508,34 @@ const transfer = async (req, res) => {
                         }
                     }
                 } else {
-                    res.status(200).send({
-                        code: "009",
-                        status: "Failed",
-                        message: "Gagal, Akun Tidak Dapat Digunakan!!!",
-                        data: null,
-                    })
+                    mpin_salah = mpin_salah + 1
+                    if (mpin_salah >= 3) {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ?, status = '2'  WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "007",
+                            status: "Failed",
+                            message: "Gagal, mPIN Terblokir!!!",
+                            data: null,
+                        });
+                    } else {
+                        let [results, metadata] = await db.sequelize.query(
+                            `UPDATE cms_acct_ebpr SET mpin_salah = ? WHERE no_hp = ? AND no_rek = ?`,
+                            {
+                                replacements: [`${mpin_salah}`, no_hp, no_rek,]
+                            }
+                        );
+                        res.status(200).send({
+                            code: "003",
+                            status: "Failed",
+                            message: "Gagal, Pin Anda Salah!!!",
+                            data: null,
+                        });
+                    }
                 }
             }
         } else if (trx_code == "2200") {

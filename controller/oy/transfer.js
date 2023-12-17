@@ -271,7 +271,9 @@ const transfer_db_cr = async (req, res) => {
                 keterangan = "TRANSFER PINDAH BUKU"
                 ket_trans = `${keterangan} ${rek_tujuan} ${nama_tujuan}`
             }
-            let mpin = encryptStringWithRsaPublicKey(pin, "./utility/privateKey.pem");
+            let mpin = encryptStringWithRsaPublicKey(
+              pin, "./utility/privateKey.pem"
+            );
             let bpr = await db.sequelize.query(
                 `SELECT * FROM kd_bpr WHERE bpr_id = ? AND status = '1'` ,
                 {
@@ -289,12 +291,11 @@ const transfer_db_cr = async (req, res) => {
                 });
             } else {
                 let nasabah = await db.sequelize.query(
-                    `SELECT * FROM acct_ebpr WHERE user_id = ? AND no_hp = ? AND pin = ? AND bpr_id = ?`,
+                    `SELECT * FROM acct_ebpr WHERE user_id = ? AND no_hp = ? AND bpr_id = ?`,
                     {
                         replacements: [
                             user_id,
                             no_hp,
-                            mpin,
                             bpr_id
                         ],
                         type: db.sequelize.QueryTypes.SELECT,
@@ -304,11 +305,11 @@ const transfer_db_cr = async (req, res) => {
                     res.status(200).send({
                         code: "999",
                         status: "ok",
-                        message: "Gagal User_id atau PIN Salah",
+                        message: "User_id Tidak Ditemukan",
                         data: null,
                     });
                 } else {
-                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin, tgl_trans, xusername, xpassword, rrn}
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin: mpin, tgl_trans, xusername, xpassword, rrn}
                     console.log(data);
                     const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                     if (request.code !== "000") {
