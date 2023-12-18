@@ -1571,6 +1571,8 @@ const transfer = async (req, res) => {
                         });
                     } else {
                         let nosbb = await split_sbb(get_nosbb, trx_code)
+                        console.log("nosbb");
+                        console.log(nosbb);
                         const data_core = {
                             no_hp,
                             bpr_id,
