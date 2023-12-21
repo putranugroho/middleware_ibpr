@@ -853,7 +853,6 @@ const inquiry_account = async (req, res) => {
                         data: acct[0],
                     });
                 }
-
             }
         } else if (trx_code == "0700") {
             console.log("REQ VALIDATE NO_HP AND NO_REK");
@@ -890,7 +889,6 @@ const inquiry_account = async (req, res) => {
                         data: null,
                     });
                 }
-
             }
         } else if (trx_code == "0800") {
             console.log("REQ VALIDATE NO_KTP");
@@ -1224,11 +1222,7 @@ const transfer = async (req, res) => {
                                 if (request.code !== "000") {
                                     console.log("failed gateway");
                                     console.log(request);
-                                    // if (bpr_id === "600998") {
-                                    //     console.log("GW Transfer Out Timeout");
-                                    // } else {
                                     res.status(200).send(request);
-                                    // }
                                 } else {
                                     const data = {
                                         token: "715f8ab555438f985b579844ea998866",
@@ -1358,9 +1352,6 @@ const transfer = async (req, res) => {
                                         } else {
                                             //--berhasil dapat list product update atau insert ke db --//
                                             console.log("Success");
-                                            // if (bpr_id === "600998") {
-                                            //     console.log("GW Transfer Out Timeout");
-                                            // } else {
                                             console.log({
                                                 code: "000",
                                                 status: "ok",
@@ -1375,7 +1366,6 @@ const transfer = async (req, res) => {
                                                 data: request.data,
                                                 data_keeping: request_keeping,
                                             });
-                                            // }
                                         }
                                     }
                                 }
@@ -1617,11 +1607,7 @@ const transfer = async (req, res) => {
                         if (request.code !== "000") {
                             console.log("failed gateway");
                             console.log(request);
-                            // if (bank_tujuan === "600641") {
-                            //     console.log("GW Transfer In Timeout");
-                            // } else {
                             res.status(200).send(request);
-                            // }
                         } else {
                             const detail_trans = {
                                 bpr_id,
@@ -1653,9 +1639,6 @@ const transfer = async (req, res) => {
                             //--berhasil dapat list product update atau insert ke db --//
                             console.log("Success");
                             console.log(request.data);
-                            // if (bank_tujuan === "600641") {
-                            //     console.log("GW Transfer In Timeout");
-                            // } else {
                             res.status(200).send({
                                 code: "000",
                                 status: "ok",
@@ -1724,11 +1707,11 @@ const transfer = async (req, res) => {
                                 gl_rek_db_2: rek_tujuan,
                                 gl_jns_db_2: "2",
                                 gl_amount_db_2: trans_fee,
-                                gl_rek_cr_1: nosbb.nosbb_db,
-                                gl_jns_cr_1: nosbb.jns_sbb_db,
+                                gl_rek_cr_1: nosbb.no_pokok.nosbb_db,
+                                gl_jns_cr_1: nosbb.no_pokok.jns_sbb_db,
                                 gl_amount_cr_1: amount,
-                                gl_rek_cr_2: nosbb.nosbb_db,
-                                gl_jns_cr_2: nosbb.jns_sbb_db,
+                                gl_rek_cr_2: nosbb.no_fee.nosbb_db,
+                                gl_jns_cr_2: nosbb.no_fee.jns_sbb_db,
                                 gl_amount_cr_2: trans_fee,
                             }
                         }
@@ -1742,9 +1725,6 @@ const transfer = async (req, res) => {
                         if (request.code !== "000") {
                             console.log("failed gateway");
                             console.log(request);
-                            // if (bank_tujuan === "600641") {
-                            //     console.log("GW Transfer In Timeout");
-                            // } else {
                             res.status(200).send(request);
                             // }
                         } else {
@@ -1778,9 +1758,6 @@ const transfer = async (req, res) => {
                             //--berhasil dapat list product update atau insert ke db --//
                             console.log("Success");
                             console.log(request.data);
-                            // if (bank_tujuan === "600641") {
-                            //     console.log("GW Transfer In Timeout");
-                            // } else {
                             res.status(200).send({
                                 code: "000",
                                 status: "ok",
@@ -1908,15 +1885,11 @@ const transfer = async (req, res) => {
                                 if (request.code !== "000") {
                                     console.log("failed gateway");
                                     console.log(request);
-                                    // if (bpr_id === "600998") {
-                                    //     console.log("GW Pindah Buku Timeout");
-                                    // } else {
                                     request.data_keeping = {
                                         value:0,
                                         message:"Gagal ke Core"
                                     }
-                                    res.status(200).send(request);
-                                    // }
+                                    res.status(200).send(request);  
                                 } else {
                                     const data = {
                                         token: "715f8ab555438f985b579844ea998866",
@@ -2322,11 +2295,7 @@ const withdrawal = async (req, res) => {
                                             );
                                             if (request.code !== "000") {
                                                 console.log(request);
-                                                // if (bpr_id === "600001") {
-                                                //     console.log("GW Token Timeout");
-                                                // } else {
                                                 res.status(200).send(request);
-                                                // }
                                             } else {
                                                 const detail_trans = {
                                                     no_rek,
@@ -2374,16 +2343,12 @@ const withdrawal = async (req, res) => {
                                                     request.data['keterangan'] = keterangan
                                                     //--berhasil dapat list product update atau insert ke db --//
                                                     console.log("Success");
-                                                    // if (bpr_id === "600001") {
-                                                    //     console.log("GW Token Timeout");
-                                                    // } else {
                                                     res.status(200).send({
                                                         code: "000",
                                                         status: "ok",
                                                         message: "Success",
                                                         data: request.data,
                                                     });
-                                                    // }
                                                 }
                                             }
                                         }
@@ -2799,20 +2764,12 @@ const withdrawal = async (req, res) => {
                             request.data['terminal_id'] = terminal_id
                             //--berhasil dapat list product update atau insert ke db --//
                             console.log("Success");
-                            // if (keterangan === "acquirer" && acq_id === "602640") {
-                            //     console.log("GW TARIK TUNAI ACQUIRER Timeout");
-                            // } else if (keterangan === "issuer" && bpr_id === "600641") {
-                            //     console.log("GW TARIK TUNAI ISSUER Timeout");
-                            // } else if (keterangan === "on_us" && bpr_id === "600998") {
-                            //     console.log("GW TARIK TUNAI ON_US Timeout");
-                            // } else {
                             res.status(200).send({
                                 code: "000",
                                 status: "ok",
                                 message: "Success",
                                 data: request.data,
                             });
-                            // }
                         }
                     }
                 } else if (trx_type === "REV") {
@@ -2832,13 +2789,11 @@ const withdrawal = async (req, res) => {
                             gl_rek_db_2: nosbb.no_fee.On_Us.nosbb_cr,
                             gl_jns_db_2: nosbb.no_fee.On_Us.jns_sbb_cr,
                             gl_amount_db_2: trans_fee,
-                            gl_rek_cr_1: no_rek,
-                            // gl_jns_cr_1: nosbb.no_pokok.On_Us.jns_sbb_db,
-                            gl_jns_cr_1: "2",
+                            gl_rek_cr_1: nosbb.no_pokok.On_Us.nosbb_db,
+                            gl_jns_cr_1: nosbb.no_pokok.On_Us.jns_sbb_db,
                             gl_amount_cr_1: amount,
-                            gl_rek_cr_2: no_rek,
-                            // gl_jns_cr_2: nosbb.no_fee.On_Us.jns_sbb_db,
-                            gl_jns_cr_2: "2",
+                            gl_rek_cr_2: nosbb.no_fee.On_Us.nosbb_db,
+                            gl_jns_cr_2: nosbb.no_fee.On_Us.jns_sbb_db,
                             gl_amount_cr_2: trans_fee,
                         }
                     } else if (keterangan == "issuer") {
@@ -2939,46 +2894,93 @@ const withdrawal = async (req, res) => {
                             let nosbb = await split_sbb(get_nosbb, trx_code)
                             let data_db, data_cr = {}
                             if (keterangan === "on_us") {
-                                await update_gl_oy_debet(
+                                const data_core_onus = {
+                                    no_hp,
+                                    bpr_id,
+                                    no_rek,
+                                    trx_code: "1100",
+                                    trx_type,
                                     amount,
                                     trans_fee,
-                                    bpr_id,
-                                    trx_code,
-                                    nosbb.no_pokok.On_Us.nosbb_cr,
-                                    nosbb.no_fee.On_Us.nosbb_cr,
-                                    nosbb.no_pokok.On_Us.nmsbb_cr,
-                                    nosbb.no_fee.On_Us.nmsbb_cr,
-                                    detail_trans
-                                )
+                                    acq_id,
+                                    terminal_id,
+                                    token,
+                                    keterangan,
+                                    lokasi,
+                                    tgl_trans,
+                                    tgl_transmis: moment().format('YYMMDDHHmmss'),
+                                    rrn,
+                                    data: {
+                                        on_us : {
+                                            gl_rek_db_1: nosbb.no_pokok.On_Us.nosbb_db,
+                                            gl_jns_db_1: nosbb.no_pokok.On_Us.jns_sbb_db,
+                                            gl_amount_db_1: amount,
+                                            gl_rek_db_2: nosbb.no_fee.On_Us.nosbb_db,
+                                            gl_jns_db_2: nosbb.no_fee.On_Us.jns_sbb_db,
+                                            gl_amount_db_2: trans_fee,
+                                            gl_rek_cr_1: no_rek,
+                                            gl_jns_cr_1: "2",
+                                            gl_amount_cr_1: amount,
+                                            gl_rek_cr_2: no_rek,
+                                            gl_jns_cr_2: "2",
+                                            gl_amount_cr_2: trans_fee,
+                                        },
+                                        issuer,
+                                        acquirer,
+                                    }
+                                }
+                                const request_onus = await connect_axios(url, "tariktunai", data_core_onus)
                                 let [results, metadata] = await db.sequelize.query(
-                                    `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                                    `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
                                     {
-                                        replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
+                                        replacements: [request_onus.code, request_onus.message, no_rek, no_hp, bpr_id, amount, trans_fee, tgl_trans, rrn],
                                     }
                                 );
-                                if (!metadata) {
-                                    console.log({
-                                        code: "001",
-                                        status: "Failed",
-                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                        data: null,
-                                    });
-                                    res.status(200).send({
-                                        code: "001",
-                                        status: "Failed",
-                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                        data: null,
-                                    });
+                                if (request_onus.code !== "000") {
+                                    console.log(request_onus);
+                                    res.status(200).send(request_onus);
                                 } else {
-                                    request.data['terminal_id'] = terminal_id
-                                    //--berhasil dapat list product update atau insert ke db --//
-                                    console.log("Success");
-                                    res.status(200).send({
-                                        code: "000",
-                                        status: "ok",
-                                        message: "Success",
-                                        data: request.data,
-                                    });
+                                    await update_gl_oy_debet(
+                                        amount,
+                                        trans_fee,
+                                        bpr_id,
+                                        trx_code,
+                                        nosbb.no_pokok.On_Us.nosbb_cr,
+                                        nosbb.no_fee.On_Us.nosbb_cr,
+                                        nosbb.no_pokok.On_Us.nmsbb_cr,
+                                        nosbb.no_fee.On_Us.nmsbb_cr,
+                                        detail_trans
+                                    )
+                                    let [results, metadata] = await db.sequelize.query(
+                                        `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
+                                        {
+                                            replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
+                                        }
+                                    );
+                                    if (!metadata) {
+                                        console.log({
+                                            code: "001",
+                                            status: "Failed",
+                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                            data: null,
+                                        });
+                                        res.status(200).send({
+                                            code: "001",
+                                            status: "Failed",
+                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                            data: null,
+                                        });
+                                    } else {
+                                        request_onus.data['terminal_id'] = terminal_id
+                                        //--berhasil dapat list product update atau insert ke db --//
+                                        console.log("Success");
+                                        res.status(200).send({
+                                            code: "000",
+                                            status: "ok",
+                                            message: "Success",
+                                            data: request_onus.data,
+                                        });
+                                    }
                                 }
                             } else if (keterangan === "issuer") {
                                 await update_gl_oy_debet(
@@ -3179,11 +3181,7 @@ const ppob = async (req, res) => {
                             );
                             if (request.code !== "000") {
                                 console.log(request);
-                                // if (bpr_id === "600998") {
-                                //     console.log("GW PPOB Timeout");
-                                // } else {
                                 res.status(200).send(request);
-                                // }
                             } else {
                                 const detail_trans = {
                                     no_rek,
@@ -3224,16 +3222,12 @@ const ppob = async (req, res) => {
                                 } else {
                                     //--berhasil dapat list product update atau insert ke db --//
                                     console.log("Success");
-                                    if (bpr_id === "600998") {
-                                        console.log("GW PPOB Timeout");
-                                    } else {
-                                        res.status(200).send({
-                                            code: "000",
-                                            status: "ok",
-                                            message: "Success",
-                                            data: request.data,
-                                        });
-                                    }
+                                    res.status(200).send({
+                                        code: "000",
+                                        status: "ok",
+                                        message: "Success",
+                                        data: request.data,
+                                    });
                                 }
                             }
                         }
