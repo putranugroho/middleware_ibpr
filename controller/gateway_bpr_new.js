@@ -2895,94 +2895,46 @@ const withdrawal = async (req, res) => {
                             let nosbb = await split_sbb(get_nosbb, trx_code)
                             let data_db, data_cr = {}
                             if (keterangan === "on_us") {
-                                const data_core_onus = {
-                                    no_hp,
-                                    bpr_id,
-                                    no_rek,
-                                    trx_code: "1100",
-                                    trx_type,
+                                await update_gl_oy_debet(
                                     amount,
                                     trans_fee,
-                                    acq_id,
-                                    terminal_id,
-                                    token,
-                                    keterangan,
-                                    lokasi,
-                                    tgl_trans,
-                                    tgl_transmis: moment().format('YYMMDDHHmmss'),
-                                    rrn,
-                                    data: {
-                                        on_us : {
-                                            gl_rek_db_1: nosbb.no_pokok.On_Us.nosbb_db,
-                                            gl_jns_db_1: nosbb.no_pokok.On_Us.jns_sbb_db,
-                                            gl_amount_db_1: amount,
-                                            gl_rek_db_2: nosbb.no_fee.On_Us.nosbb_db,
-                                            gl_jns_db_2: nosbb.no_fee.On_Us.jns_sbb_db,
-                                            gl_amount_db_2: trans_fee,
-                                            gl_rek_cr_1: no_rek,
-                                            gl_jns_cr_1: "2",
-                                            gl_amount_cr_1: amount,
-                                            gl_rek_cr_2: no_rek,
-                                            gl_jns_cr_2: "2",
-                                            gl_amount_cr_2: trans_fee,
-                                        },
-                                        issuer,
-                                        acquirer,
-                                    }
-                                }
-                                const request_onus = await connect_axios(url, "tariktunai", data_core_onus)
-                                console.log("REV 2 ATM "+keterangan);
+                                    bpr_id,
+                                    trx_code,
+                                    nosbb.no_pokok.On_Us.nosbb_cr,
+                                    nosbb.no_fee.On_Us.nosbb_cr,
+                                    nosbb.no_pokok.On_Us.nmsbb_cr,
+                                    nosbb.no_fee.On_Us.nmsbb_cr,
+                                    detail_trans
+                                )
                                 let [results, metadata] = await db.sequelize.query(
-                                    `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
+                                    `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
                                     {
-                                        replacements: [request_onus.code, request_onus.message, no_rek, no_hp, bpr_id, amount, trans_fee, tgl_trans, rrn],
+                                        replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
                                     }
                                 );
-                                if (request_onus.code !== "000") {
-                                    console.log(request_onus);
-                                    res.status(200).send(request_onus);
+                                if (!metadata) {
+                                    console.log({
+                                        code: "001",
+                                        status: "Failed",
+                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                        data: null,
+                                    });
+                                    res.status(200).send({
+                                        code: "001",
+                                        status: "Failed",
+                                        message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
+                                        data: null,
+                                    });
                                 } else {
-                                    await update_gl_oy_debet(
-                                        amount,
-                                        trans_fee,
-                                        bpr_id,
-                                        trx_code,
-                                        nosbb.no_pokok.On_Us.nosbb_cr,
-                                        nosbb.no_fee.On_Us.nosbb_cr,
-                                        nosbb.no_pokok.On_Us.nmsbb_cr,
-                                        nosbb.no_fee.On_Us.nmsbb_cr,
-                                        detail_trans
-                                    )
-                                    let [results, metadata] = await db.sequelize.query(
-                                        `UPDATE cms_acct_ebpr SET tariktunai = tariktunai - ? - ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ?`,
-                                        {
-                                            replacements: [amount, trans_fee, no_rek, no_hp, bpr_id],
-                                        }
-                                    );
-                                    if (!metadata) {
-                                        console.log({
-                                            code: "001",
-                                            status: "Failed",
-                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                            data: null,
-                                        });
-                                        res.status(200).send({
-                                            code: "001",
-                                            status: "Failed",
-                                            message: "Gagal, Terjadi Kesalahan Update Counter Transaksi!!!",
-                                            data: null,
-                                        });
-                                    } else {
-                                        request_onus.data['terminal_id'] = terminal_id
-                                        //--berhasil dapat list product update atau insert ke db --//
-                                        console.log("Success");
-                                        res.status(200).send({
-                                            code: "000",
-                                            status: "ok",
-                                            message: "Success",
-                                            data: request_onus.data,
-                                        });
-                                    }
+                                    request_onus.data['terminal_id'] = terminal_id
+                                    //--berhasil dapat list product update atau insert ke db --//
+                                    console.log("Success");
+                                    res.status(200).send({
+                                        code: "000",
+                                        status: "ok",
+                                        message: "Success",
+                                        data: request_onus.data,
+                                    });
                                 }
                             } else if (keterangan === "issuer") {
                                 await update_gl_oy_debet(

@@ -595,7 +595,7 @@ const release_withdrawal = async (req, res) => {
                                             let nilai = formatRibuan(cek_hold_dana[0].amount)
                                             let amount = cek_hold_dana[0].amount
                                             nominal = nominal.substring(nominal.length - 12, nominal.length)
-                                            const data_request = { no_hp, bpr_id: bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
+                                            const data_request = { no_hp, bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
                                             console.log("data_request Reversal");
                                             console.log(data_request);
                                             request = await connect_axios(bpr[0].gateway, "gateway_bpr/withdrawal", data_request)
@@ -609,26 +609,55 @@ const release_withdrawal = async (req, res) => {
                                                     response,
                                                 );
                                             } else {
-                                                let [results, metadata] = await db1.sequelize.query(
-                                                    `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
-                                                    {
-                                                        replacements: [
-                                                            cek_hold_dana[0].no_rek,
-                                                            cek_hold_dana[0].token,
-                                                            cek_hold_dana[0].rrn
-                                                        ],
-                                                    }
+                                                const keterangan = `Reversal Token ${amount} ${moment().format(
+                                                "YYYY-MM-DD HH:mm:ss"
+                                                )}`;
+
+                                                const data = {
+                                                no_hp,
+                                                bpr_id,
+                                                no_rek: nasabah.data.no_rek,
+                                                amount,
+                                                trans_fee: 0,
+                                                trx_code: "1000",
+                                                trx_type,
+                                                keterangan,
+                                                acq_id: "",
+                                                terminal_id: "",
+                                                token: "",
+                                                lokasi: "",
+                                                tgl_trans: cek_hold_dana[0].tgl_trans,
+                                                tgl_transmis: cek_hold_dana[0].tgl_trans,
+                                                rrn: cek_hold_dana[0].rrn,
+                                                };
+
+                                                const request = await connect_axios(
+                                                bpr[0].gateway,
+                                                "gateway_bpr/withdrawal",
+                                                data
                                                 );
-                                                if (!metadata) {
-                                                    response = await error_response(data, response, "", "TRANSAKSI DI TOLAK", "TOKEN TIDAK DITEMUKAN", null, null, null, null, null, null, null, null, null, null, null, null, null, "81", "Token Tidak Ditemukan")
-                                                    await send_log(data, response)
-                                                    console.log(response);
-                                                    res.status(200).send(
-                                                        response,
-                                                    );
+
+                                                if (request.code !== "000") {
+                                                    console.log("request");
+                                                    console.log(request);
+                                                    res.status(200).send(request);
                                                 } else {
+                                                    console.log("request.data");
+                                                    console.log(request.data);
+                                                    let [results2, metadata2] = await db.sequelize.query(
+                                                        `UPDATE dummy_transaksi SET status_rek = 'R' WHERE bpr_id= ? AND no_rek = ? AND tcode = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                                                        {
+                                                        replacements: [
+                                                            bpr_id,
+                                                            nasabah.data.no_rek,
+                                                            "1000",
+                                                            amount,
+                                                            cek_hold_dana[0].rrn,
+                                                        ],
+                                                        }
+                                                    );
                                                     let [results, metadata] = await db1.sequelize.query(
-                                                        `UPDATE dummy_hold_dana SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
+                                                        `UPDATE token SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
                                                         {
                                                             replacements: [
                                                                 cek_hold_dana[0].no_rek,
@@ -637,49 +666,68 @@ const release_withdrawal = async (req, res) => {
                                                             ],
                                                         }
                                                     );
-                                                    let [results2, metadata2] = await db1.sequelize.query(
-                                                        `UPDATE dummy_transaksi SET status_rek = 'R' WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
-                                                        {
-                                                            replacements: [
-                                                                cek_hold_dana[0].reff,
-                                                                cek_hold_dana[0].no_rek,
-                                                                amount,
-                                                                cek_hold_dana[0].rrn
-                                                            ],
-                                                        }
-                                                    );
-                                                    response["jumlahtx"] = nominal.substring(nominal.length - 12, nominal.length)
-                                                    response["kodetrx"] = data.KODETRX
-                                                    response["nokartu"] = data.NOKARTU
-                                                    response["tid"] = data.TID
-                                                    response["text1"] = null
-                                                    response["text2"] = `NAMA  = ${nasabah.data.nama_rek}`
-                                                    response["text3"] = `NILAI = Rp. ${nilai}`
-                                                    response["text4"] = null
-                                                    response["text5"] = null
-                                                    response["text6"] = null
-                                                    response["text7"] = null
-                                                    response["text8"] = null
-                                                    response["text9"] = null
-                                                    response["text10"] = null
-                                                    response["text11"] = null
-                                                    response["text12"] = null
-                                                    response["text13"] = null
-                                                    response["text14"] = null
-                                                    response["text15"] = null
-                                                    response["text16"] = null
-                                                    response["text17"] = null
-                                                    response["text18"] = null
-                                                    response["text19"] = null
-                                                    response["text20"] = null
-                                                    response['rcode'] = "00"
-                                                    response['message'] = "REVERSAL SUKSES"
-                                                    //--berhasil dapat list product update atau insert ke db --//
-                                                    await send_log(data, response)
-                                                    console.log(response);
-                                                    res.status(200).send(
-                                                        response
-                                                    );
+                                                    if (!metadata) {
+                                                        response = await error_response(data, response, "", "TRANSAKSI DI TOLAK", "TOKEN TIDAK DITEMUKAN", null, null, null, null, null, null, null, null, null, null, null, null, null, "81", "Token Tidak Ditemukan")
+                                                        await send_log(data, response)
+                                                        console.log(response);
+                                                        res.status(200).send(
+                                                            response,
+                                                        );
+                                                    } else {
+                                                        let [results, metadata] = await db1.sequelize.query(
+                                                            `UPDATE dummy_hold_dana SET status = 'R' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '1'`,
+                                                            {
+                                                                replacements: [
+                                                                    cek_hold_dana[0].no_rek,
+                                                                    cek_hold_dana[0].token,
+                                                                    cek_hold_dana[0].rrn
+                                                                ],
+                                                            }
+                                                        );
+                                                        let [results2, metadata2] = await db1.sequelize.query(
+                                                            `UPDATE dummy_transaksi SET status_rek = 'R' WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '1'`,
+                                                            {
+                                                                replacements: [
+                                                                    cek_hold_dana[0].reff,
+                                                                    cek_hold_dana[0].no_rek,
+                                                                    amount,
+                                                                    cek_hold_dana[0].rrn
+                                                                ],
+                                                            }
+                                                        );
+                                                        response["jumlahtx"] = nominal.substring(nominal.length - 12, nominal.length)
+                                                        response["kodetrx"] = data.KODETRX
+                                                        response["nokartu"] = data.NOKARTU
+                                                        response["tid"] = data.TID
+                                                        response["text1"] = null
+                                                        response["text2"] = `NAMA  = ${nasabah.data.nama_rek}`
+                                                        response["text3"] = `NILAI = Rp. ${nilai}`
+                                                        response["text4"] = null
+                                                        response["text5"] = null
+                                                        response["text6"] = null
+                                                        response["text7"] = null
+                                                        response["text8"] = null
+                                                        response["text9"] = null
+                                                        response["text10"] = null
+                                                        response["text11"] = null
+                                                        response["text12"] = null
+                                                        response["text13"] = null
+                                                        response["text14"] = null
+                                                        response["text15"] = null
+                                                        response["text16"] = null
+                                                        response["text17"] = null
+                                                        response["text18"] = null
+                                                        response["text19"] = null
+                                                        response["text20"] = null
+                                                        response['rcode'] = "00"
+                                                        response['message'] = "REVERSAL SUKSES"
+                                                        //--berhasil dapat list product update atau insert ke db --//
+                                                        await send_log(data, response)
+                                                        console.log(response);
+                                                        res.status(200).send(
+                                                            response
+                                                        );
+                                                    }
                                                 }
                                             }
                                         }
