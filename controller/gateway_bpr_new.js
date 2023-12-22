@@ -2870,6 +2870,7 @@ const withdrawal = async (req, res) => {
                         });
                     } else {
                         const request = await connect_axios(url, "tariktunai", data_core)
+                        console.log("REV ATM "+keterangan);
                         let [results, metadata] = await db.sequelize.query(
                             `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
                             {
@@ -2930,6 +2931,7 @@ const withdrawal = async (req, res) => {
                                     }
                                 }
                                 const request_onus = await connect_axios(url, "tariktunai", data_core_onus)
+                                console.log("REV 2 ATM "+keterangan);
                                 let [results, metadata] = await db.sequelize.query(
                                     `UPDATE log_core SET rcode = ?, messages = ? WHERE no_rek = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND trans_fee = ? AND tgl_trans = ? AND rrn = ?`,
                                     {
