@@ -520,6 +520,22 @@ const release_withdrawal = async (req, res) => {
                                                 response,
                                             );
                                         } else {
+                                            const data_token = {
+                                                keterangan,
+                                                token: "715f8ab555438f985b579844ea227767",
+                                                no_hp: cek_hold_dana[0].no_hp,
+                                                no_rek: cek_hold_dana[0].no_rek,
+                                                bpr_id: cek_hold_dana[0].bpr_id,
+                                                amount: cek_hold_dana[0].amount,
+                                                trans_fee: cek_hold_dana[0].admin_fee,
+                                                tgl_trans: cek_hold_dana[0].tgljam_trans,
+                                                reff: check_hold_dana[0].reff
+                                              }
+                                            console.log("data token");
+                                            console.log(data_token);
+                                            let status_token = await connect_axios("https://core.metimes.id/", "completed-token", data_token)
+                                            console.log("status token");
+                                            console.log(status_token);
                                             let [results, metadata] = await db1.sequelize.query(
                                                 `UPDATE token SET status = '1' WHERE no_rek = ? AND token = ? AND rrn = ? AND status = '0'`,
                                                 {
