@@ -660,7 +660,7 @@ const inquiry_account = async (req, res) => {
                     code: "000",
                     status: "ok",
                     message: "Success",
-                    data: request.data.data,
+                    data: request.data,
                 });
             }
         } else if (trx_code == "0400") {
