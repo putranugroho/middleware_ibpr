@@ -529,7 +529,7 @@ const release_withdrawal = async (req, res) => {
                                                 amount: cek_hold_dana[0].amount,
                                                 trans_fee: cek_hold_dana[0].admin_fee,
                                                 tgl_trans: cek_hold_dana[0].tgljam_trans,
-                                                reff: check_hold_dana[0].reff
+                                                reff: cek_hold_dana[0].reff
                                               }
                                             console.log("data token");
                                             console.log(data_token);
