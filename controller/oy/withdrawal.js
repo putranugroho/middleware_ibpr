@@ -506,7 +506,7 @@ const release_withdrawal = async (req, res) => {
                                         let nilai = formatRibuan(cek_hold_dana[0].amount)
                                         let amount = cek_hold_dana[0].amount
                                         nominal = nominal.substring(nominal.length - 12, nominal.length)
-                                        const data_request = { no_hp, bpr_id: bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
+                                        const data_request = { no_hp, bpr_id: bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: cek_hold_dana[0].admin_fee, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans, rrn }
                                         console.log("data_request Transaksi");
                                         console.log(data_request);
                                         request = await connect_axios(bpr[0].gateway, "gateway_bpr/withdrawal", data_request)
@@ -523,12 +523,12 @@ const release_withdrawal = async (req, res) => {
                                             const data_token = {
                                                 keterangan,
                                                 token: "715f8ab555438f985b579844ea227767",
-                                                no_hp: cek_hold_dana[0].no_hp,
-                                                no_rek: cek_hold_dana[0].no_rek,
-                                                bpr_id: cek_hold_dana[0].bpr_id,
-                                                amount: cek_hold_dana[0].amount,
+                                                no_hp: no_hp,
+                                                no_rek: nasabah.data.no_rek,
+                                                bpr_id: bpr_id,
+                                                amount: amount,
                                                 trans_fee: cek_hold_dana[0].admin_fee,
-                                                tgl_trans: cek_hold_dana[0].tgljam_trans,
+                                                tgl_trans,
                                                 reff: cek_hold_dana[0].reff
                                               }
                                             console.log("data token");
