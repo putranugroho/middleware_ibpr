@@ -1169,7 +1169,7 @@ const transfer = async (req, res) => {
                                     type: db.sequelize.QueryTypes.SELECT,
                                 }
                             );
-                            if (status_core.status == "0") {
+                            if (status_core[0].status == "0") {
                                 res.status(200).send({
                                     code: "099",
                                     status: "Failed",
@@ -1413,7 +1413,7 @@ const transfer = async (req, res) => {
                                     gl_amount_cr_2: trans_fee,
                                 }
                             }
-                            if (status_core.status == "0") {
+                            if (status_core[0].status == "0") {
                                 let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
                                     `INSERT INTO hold_transaction (data) VALUES (?)`,
                                     {
@@ -1537,7 +1537,7 @@ const transfer = async (req, res) => {
                         type: db.sequelize.QueryTypes.SELECT,
                     }
                 );
-                if (status_core.status == "0") {
+                if (status_core[0].status == "0") {
                     res.status(200).send({
                         code: "099",
                         status: "Failed",
@@ -1657,7 +1657,7 @@ const transfer = async (req, res) => {
                         type: db.sequelize.QueryTypes.SELECT,
                     }
                 );
-                if (status_core.status == "0") {
+                if (status_core[0].status == "0") {
                     res.status(200).send({
                         code: "099",
                         status: "Failed",
@@ -1816,7 +1816,7 @@ const transfer = async (req, res) => {
                             type: db.sequelize.QueryTypes.SELECT,
                         }
                     );
-                    if (status_core.status == "0") {
+                    if (status_core[0].status == "0") {
                         res.status(200).send({
                             code: "099",
                             status: "Failed",
@@ -2247,7 +2247,7 @@ const withdrawal = async (req, res) => {
                                         );
                                         console.log("check status_core");
                                         console.log(status_core);
-                                        if (status_core.status == "0") {
+                                        if (status_core[0].status == "0") {
                                             res.status(200).send({
                                                 code: "099",
                                                 status: "Failed",
@@ -2394,7 +2394,7 @@ const withdrawal = async (req, res) => {
                                         type: db.sequelize.QueryTypes.SELECT,
                                     }
                                 );
-                                if (status_core.status == "0") {
+                                if (status_core[0].status == "0") {
                                     res.status(200).send({
                                         code: "099",
                                         status: "Failed",
@@ -2435,7 +2435,7 @@ const withdrawal = async (req, res) => {
                                             gl_amount_cr_2: trans_fee,
                                         }
                                     }
-                                    if (status_core.status == "0") {
+                                    if (status_core[0].status == "0") {
                                         let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
                                             `INSERT INTO hold_transaction (data) VALUES (?)`,
                                             {
@@ -2593,7 +2593,7 @@ const withdrawal = async (req, res) => {
                             type: db.sequelize.QueryTypes.SELECT,
                         }
                     );
-                    if (status_core.status == "0") {
+                    if (status_core[0].status == "0") {
                         res.status(200).send({
                             code: "099",
                             status: "Failed",
@@ -2854,7 +2854,7 @@ const withdrawal = async (req, res) => {
                             acquirer,
                         }
                     }
-                    if (status_core.status == "0") {
+                    if (status_core[0].status == "0") {
                         let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
                             `INSERT INTO hold_transaction (data) VALUES (?)`,
                             {
@@ -3092,7 +3092,7 @@ const ppob = async (req, res) => {
                                 type: db.sequelize.QueryTypes.SELECT,
                             }
                         );
-                        if (status_core.status == "0") {
+                        if (status_core[0].status == "0") {
                             res.status(200).send({
                                 code: "099",
                                 status: "Failed",
@@ -3224,7 +3224,7 @@ const ppob = async (req, res) => {
                                 gl_amount_cr_2: trans_fee,
                             }
                         }
-                        if (status_core.status == "0") {
+                        if (status_core[0].status == "0") {
                             let [res_log_pokok, meta_log_pokok] = await db.sequelize.query(
                                 `INSERT INTO hold_transaction (data) VALUES (?)`,
                                 {
