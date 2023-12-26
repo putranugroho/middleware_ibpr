@@ -380,7 +380,7 @@ const release_withdrawal = async (req, res) => {
         let trx_type = data.JENISTX
         let terminal_id = data.TERMINALID
         let token = data.OTP
-        let tgl_trans = data.WAKTU
+        let tgl_trans = moment().format("YYMMDDHHmmss")
         let tgl_transmis = moment().format('YYMMDDHHmmss')
         let rrn = data.TID.substring(data.TID.length - 6, data.TID.length)
         let response = {}
