@@ -654,7 +654,7 @@ const release_withdrawal = async (req, res) => {
                                                 "YYYY-MM-DD HH:mm:ss"
                                                 )}`;
 
-                                                const data = {
+                                                const data_reversal_token = {
                                                 no_hp,
                                                 bpr_id,
                                                 no_rek: nasabah.data.no_rek,
@@ -675,7 +675,7 @@ const release_withdrawal = async (req, res) => {
                                                 const request = await connect_axios(
                                                 bpr[0].gateway,
                                                 "gateway_bpr/withdrawal",
-                                                data
+                                                data_reversal_token
                                                 );
 
                                                 if (request.code !== "000") {
@@ -763,9 +763,8 @@ const release_withdrawal = async (req, res) => {
                                                         response['rcode'] = "00"
                                                         response['message'] = "REVERSAL SUKSES"
                                                         //--berhasil dapat list product update atau insert ke db --//
-                                                        console.log("data reversal");
-                                                        console.log(data);
                                                         await send_log(data, response)
+                                                        console.log(response);
                                                         res.status(200).send(
                                                             response
                                                         );
