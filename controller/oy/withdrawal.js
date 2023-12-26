@@ -587,7 +587,7 @@ const release_withdrawal = async (req, res) => {
                                                     "",
                                                     `TRACE : ${data.TID}`,
                                                     "",
-                                                    "==== TARIK TUNAI TANPA KARTU ====",
+                                                    " ==== TARIK TUNAI TANPA KARTU ==== ",
                                                     "",
                                                     `NAMA     = ${nasabah.data.nama_rek}`,
                                                     `NOMER HP = #########${no_hp.substring(9, no_hp.length)}`,
