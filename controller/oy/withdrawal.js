@@ -414,6 +414,7 @@ const release_withdrawal = async (req, res) => {
                     type: db.sequelize.QueryTypes.SELECT,
                 }
             );
+            console.log(get_atm);
             if (!get_atm.length) {
                 // console.log({
                 //     code: "002",
