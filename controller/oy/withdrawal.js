@@ -614,7 +614,7 @@ const release_withdrawal = async (req, res) => {
                                         let amount = cek_hold_dana[0].amount
                                         nominal = nominal.substring(nominal.length - 12, nominal.length)
                                         let cek_transaksi = await db1.sequelize.query(
-                                            `SELECT * FROM dummy_transaksi WHERE token = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND rrn`,
+                                            `SELECT * FROM dummy_transaksi WHERE token = ? AND no_hp = ? AND bpr_id = ? AND amount = ? AND rrn = ?`,
                                             {
                                                 replacements: [
                                                     token,
