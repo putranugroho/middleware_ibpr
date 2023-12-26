@@ -565,7 +565,7 @@ const release_withdrawal = async (req, res) => {
                                                     }
                                                 );
                                                 let [results2, metadata2] = await db1.sequelize.query(
-                                                    `UPDATE dummy_transaksi SET status_rek = '1' AND tgljam_trans = ? AND rrn = ? AND token = ? WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '0'`,
+                                                    `UPDATE dummy_transaksi SET status_rek = '1', tgljam_trans = ?, rrn = ?, token = ? WHERE reff = ? AND no_rek = ? AND amount = ? AND rrn = ? AND status_rek = '0'`,
                                                     {
                                                         replacements: [
                                                             tgl_trans,
