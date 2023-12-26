@@ -585,14 +585,14 @@ const release_withdrawal = async (req, res) => {
                                                     get_atm[0].atm_id,
                                                     moment().format('DD-MM-YYYY HH:mm:ss'),
                                                     "",
-                                                    `TRACE : ${data.TID}`,
+                                                    `TRACE ${data.TID}`,
                                                     "",
-                                                    " ==== TARIK TUNAI TANPA KARTU ==== ",
+                                                    "TARIK TUNAI TANPA KARTU",
                                                     "",
-                                                    `NAMA     = ${nasabah.data.nama_rek}`,
-                                                    `NOMER HP = #########${no_hp.substring(9, no_hp.length)}`,
-                                                    `NILAI    = Rp. ${nilai}`,
-                                                    `TOKEN    = ${data.OTP}`,
+                                                    `NAMA ${nasabah.data.nama_rek}`,
+                                                    `NOMER HP ${no_hp.substring(9, no_hp.length)}`,
+                                                    `NILAI Rp. ${nilai}`,
+                                                    `TOKEN ${data.OTP}`,
                                                     "",
                                                     "TERIMA KASIH",
                                                     "00",
@@ -715,8 +715,8 @@ const release_withdrawal = async (req, res) => {
                                                     response["nokartu"] = data.NOKARTU
                                                     response["tid"] = data.TID
                                                     response["text1"] = null
-                                                    response["text2"] = `NAMA  = ${nasabah.data.nama_rek}`
-                                                    response["text3"] = `NILAI = Rp. ${nilai}`
+                                                    response["text2"] = `NAMA ${nasabah.data.nama_rek}`
+                                                    response["text3"] = `NILAI Rp. ${nilai}`
                                                     response["text4"] = null
                                                     response["text5"] = null
                                                     response["text6"] = null
@@ -794,8 +794,8 @@ const release_withdrawal = async (req, res) => {
                                         response,
                                         nominal,
                                         null,
-                                        `NAMA = ${nasabah.data.nama_rek}`,
-                                        `NILAI = Rp. ${nilai}`,
+                                        `NAMA ${nasabah.data.nama_rek}`,
+                                        `NILAI Rp. ${nilai}`,
                                         null,
                                         null,
                                         null,
