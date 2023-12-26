@@ -763,7 +763,8 @@ const release_withdrawal = async (req, res) => {
                                                         response['rcode'] = "00"
                                                         response['message'] = "REVERSAL SUKSES"
                                                         //--berhasil dapat list product update atau insert ke db --//
-                                                        console.log(response);
+                                                        console.log("data reversal");
+                                                        console.log(data);
                                                         await send_log(data, response)
                                                         res.status(200).send(
                                                             response
