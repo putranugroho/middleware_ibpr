@@ -636,7 +636,7 @@ const release_withdrawal = async (req, res) => {
                                                 response,
                                             );
                                         } else {
-                                            const data_request = { no_hp, bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans: cek_transaksi[0].tgl_trans, rrn: cek_transaksi[0].rrn }
+                                            const data_request = { no_hp, bpr_id, no_rek: nasabah.data.no_rek, nama_rek: nasabah.data.nama_rek, amount, trans_fee: 0, trx_code: "1100", trx_type, keterangan: "on_us", terminal_id, lokasi: get_atm[0].lokasi, token, acq_id: get_atm[0].bpr_id, tgl_trans: cek_transaksi[0].tgljam_trans, rrn: cek_transaksi[0].rrn }
                                             console.log("data_request Reversal");
                                             console.log(data_request);
                                             request = await connect_axios(bpr[0].gateway, "gateway_bpr/withdrawal", data_request)
