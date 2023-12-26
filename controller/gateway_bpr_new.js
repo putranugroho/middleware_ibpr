@@ -2927,14 +2927,14 @@ const withdrawal = async (req, res) => {
                                         data: null,
                                     });
                                 } else {
-                                    request_onus.data['terminal_id'] = terminal_id
+                                    request.data['terminal_id'] = terminal_id
                                     //--berhasil dapat list product update atau insert ke db --//
                                     console.log("Success");
                                     res.status(200).send({
                                         code: "000",
                                         status: "ok",
                                         message: "Success",
-                                        data: request_onus.data,
+                                        data: request.data,
                                     });
                                 }
                             } else if (keterangan === "issuer") {
