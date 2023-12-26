@@ -2245,6 +2245,8 @@ const withdrawal = async (req, res) => {
                                                 type: db.sequelize.QueryTypes.SELECT,
                                             }
                                         );
+                                        console.log("check status_core");
+                                        console.log(status_core);
                                         if (status_core.status == "0") {
                                             res.status(200).send({
                                                 code: "099",
