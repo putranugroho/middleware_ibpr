@@ -713,9 +713,8 @@ const inquiry_account = async (req, res) => {
                                         {
                                             no_rek,
                                             nama_rek: request.data[0].nama,
-                                            saldo: `${parseInt(request.data[0].saldoakhir)}`,
-                                            saldo_blokir: "0",
-                                            saldo_min: "50000",
+                                            saldoakhir: `${parseInt(request.data[0].saldoakhir)}`,
+                                            saldoeff: `${parseInt(request.data[0].saldoeff)}`,
                                         }
                                     ],
                                 });
@@ -728,9 +727,8 @@ const inquiry_account = async (req, res) => {
                                     {
                                         no_rek,
                                         nama_rek: request.data[0].nama,
-                                        saldo: `${parseInt(request.data[0].saldoakhir)}`,
-                                        saldo_blokir: "0",
-                                        saldo_min: "50000",
+                                        saldoakhir: `${parseInt(request.data[0].saldoakhir)}`,
+                                        saldoeff: `${parseInt(request.data[0].saldoeff)}`,
                                     }
                                 ],
                             });
