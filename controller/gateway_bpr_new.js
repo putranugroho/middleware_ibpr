@@ -1590,8 +1590,8 @@ const transfer = async (req, res) => {
                                 gl_rek_cr_1: rek_tujuan,
                                 gl_jns_cr_1: "2",
                                 gl_amount_cr_1: amount,
-                                gl_rek_cr_2: rek_tujuan,
-                                gl_jns_cr_2: "2",
+                                gl_rek_cr_2: nosbb.no_fee.nosbb_cr,
+                                gl_jns_cr_2: nosbb.no_fee.jns_sbb_cr,
                                 gl_amount_cr_2: trans_fee
                             }
                         }
@@ -1702,8 +1702,8 @@ const transfer = async (req, res) => {
                                 gl_rek_db_1: rek_tujuan,
                                 gl_jns_db_1: "2",
                                 gl_amount_db_1: amount,
-                                gl_rek_db_2: rek_tujuan,
-                                gl_jns_db_2: "2",
+                                gl_rek_db_2: nosbb.no_fee.nosbb_cr,
+                                gl_jns_db_2: nosbb.no_fee.jns_sbb_cr,
                                 gl_amount_db_2: trans_fee,
                                 gl_rek_cr_1: nosbb.no_pokok.nosbb_db,
                                 gl_jns_cr_1: nosbb.no_pokok.jns_sbb_db,
