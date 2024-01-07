@@ -150,6 +150,7 @@ const transfer_db_cr = async (req, res) => {
         user_id,
         xusername,
         xpassword,
+        token,
         pin,
         rrn} = req.body;
     try {
@@ -176,7 +177,7 @@ const transfer_db_cr = async (req, res) => {
                     data: [],
                 });
             } else {
-                const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, rrn}
+                const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, tgl_trans, xusername, xpassword, token, rrn}
                 const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                 if (request.code !== "000") {
                     console.log("failed middleware");
@@ -309,7 +310,7 @@ const transfer_db_cr = async (req, res) => {
                         data: null,
                     });
                 } else {
-                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin: mpin, tgl_trans, xusername, xpassword, rrn}
+                    const data = {no_hp, bpr_id, no_rek, bank_tujuan, rek_tujuan, nama_tujuan, amount, trans_fee, trx_code, trx_type, keterangan, pin: mpin, tgl_trans, xusername, xpassword, token, rrn}
                     console.log(data);
                     const request = await connect_axios(bpr[0].gateway,"gateway_bpr/transfer",data)
                     if (request.code !== "000") {
